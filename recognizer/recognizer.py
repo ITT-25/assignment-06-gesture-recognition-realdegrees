@@ -3,14 +3,21 @@ import numpy as np
 import xml.etree.ElementTree as ET
 from typing import List, Tuple
 import sys
+import threading
+import time
 
 DEFAULT_TEMPLATE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../datasets/xml_logs"))
 class Recognizer:
     """Python implementation of the 1$ unistroke recognizer based on this pseudo code: https://depts.washington.edu/acelab/proj/dollar/dollar.pdf."""
     def __init__(self, *, template_path: str = DEFAULT_TEMPLATE_PATH, num_points: int = 64) -> None:
-        """Load gesture templates from XML files. And recognize gestures based on strokes."""
+        """Load gesture templates from XML files in the background. Recognize gestures based on strokes."""
         self.num_points = num_points
-        data: List[Tuple[str, np.ndarray]] = []
+        self.templates: List[Tuple[str, np.ndarray]] = []
+        self.loading = True
+        self._loading_thread = threading.Thread(target=self._load_templates, args=(template_path,), daemon=True)
+        self._loading_thread.start()
+
+    def _load_templates(self, template_path: str):
         xml_files = []
         if not os.path.exists(template_path):
             print(f"Warning: Template path '{template_path}' does not exist.")
@@ -30,15 +37,17 @@ class Recognizer:
                 points.append([x, y])
             points_array = np.array(points, dtype=float)
             normalized_points = self._normalize(points_array)
-            data.append((label, normalized_points))
+            self.templates.append((label, normalized_points))
             # Loading bar
-            bar_len = 30
-            filled_len = int(bar_len * idx // total)
-            bar = '=' * filled_len + '-' * (bar_len - filled_len)
-            sys.stdout.write(f"\rLoading gesture templates: [{bar}] {idx}/{total}")
-            sys.stdout.flush()
+            if idx % 5 == 0 or idx == total:
+                bar_len = 30
+                filled_len = int(bar_len * idx // total)
+                bar = '=' * filled_len + '-' * (bar_len - filled_len)
+                sys.stdout.write(f"\rLoading gesture templates: [{bar}] {idx}/{total}")
+                sys.stdout.flush()
+            time.sleep(0.001)  # Yield to main thread to reduce lag
         print()
-        self.templates = data
+        self.loading = False
 
     def _normalize(self, points: np.ndarray) -> np.ndarray:
         """Normalize input points."""

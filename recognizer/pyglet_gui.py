@@ -61,7 +61,8 @@ class DrawingWindow(pyglet.window.Window):
                     denorm_template[:, 1] = max_y - (denorm_template[:, 1] - min_y)
                 self.denorm_template = denorm_template
             else:
-                self.label.text = f"Prediction: {pred}"
+                label, _ = pred
+                self.label.text = f"Prediction: {label}"
                 self.denorm_template = None
             self.stroke_points = []
 
