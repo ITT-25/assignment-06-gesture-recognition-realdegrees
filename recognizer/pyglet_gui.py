@@ -2,7 +2,7 @@ from typing import List, Optional, Tuple
 import pyglet
 from pyglet.window import mouse
 import numpy as np
-from recognizer import Recognizer
+from recognizer import Recognizer, AsyncRecognizer
 import click
 
 class DrawingWindow(pyglet.window.Window):
@@ -65,9 +65,7 @@ def main(template_path: Optional[str], async_loading: bool):
     recognizer_args = {}
     if template_path:
         recognizer_args["template_path"] = template_path
-    if async_loading:
-        recognizer_args["load_async"] = True
-    recognizer = Recognizer(**recognizer_args)
+    recognizer = AsyncRecognizer(**recognizer_args) if async_loading else Recognizer(**recognizer_args)
     DrawingWindow(recognizer, width=600, height=400, caption="$1 Recognizer Demo")
     pyglet.app.run()
 

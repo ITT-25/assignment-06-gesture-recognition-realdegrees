@@ -7,17 +7,15 @@ import threading
 import time
 
 DEFAULT_TEMPLATE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../datasets/xml_logs"))
+
+        
 class Recognizer:
     """Python implementation of the 1$ unistroke recognizer based on this pseudo code: https://depts.washington.edu/acelab/proj/dollar/dollar.pdf."""
-    def __init__(self, *, template_path: str = DEFAULT_TEMPLATE_PATH, num_points: int = 64, load_async: bool = False) -> None:
+    def __init__(self, *, template_path: str = DEFAULT_TEMPLATE_PATH, num_points: int = 64) -> None:
         self.num_points = num_points
         self.templates: List[Tuple[str, np.ndarray]] = []
         self.loading = True
-        if load_async:
-            self._loading_thread = threading.Thread(target=self._load_templates, args=(template_path,), daemon=True)
-            self._loading_thread.start()
-        else:
-            self._load_templates(template_path)
+        self._load_templates(template_path, yield_to_main=False)
 
     def _load_templates(self, template_path: str, yield_to_main: bool = True):
         xml_files = []
@@ -45,7 +43,7 @@ class Recognizer:
                 bar_len = 30
                 filled_len = int(bar_len * idx // total)
                 bar = '=' * filled_len + '-' * (bar_len - filled_len)
-                sys.stdout.write(f"\rLoading gesture templates: [{bar}] {idx}/{total}")
+                sys.stdout.write(f"\rLoading gesture templates ({"Async" if yield_to_main else "Sync"}): [{bar}] {idx}/{total}")
                 sys.stdout.flush()
             if yield_to_main:
                 time.sleep(0.001)  # Yield to main thread to reduce lag
@@ -144,6 +142,7 @@ class Recognizer:
 
     def recognize(self, points: np.ndarray):
         """Recognize the input gesture.
+        
         Returns the label, normalized template, denormalized template, and confidence (0-1).
         """
         normalized_points, params = self.normalize(points)
@@ -170,3 +169,12 @@ class Recognizer:
     def _path_distance(self, a: np.ndarray, b: np.ndarray) -> float:
         """Compute average distance between corresponding points."""
         return np.mean(np.linalg.norm(a - b, axis=1))
+
+class AsyncRecognizer(Recognizer):
+    """Async Python implementation of the 1$ unistroke recognizer based on this pseudo code: https://depts.washington.edu/acelab/proj/dollar/dollar.pdf."""
+    def __init__(self, *, template_path: str = DEFAULT_TEMPLATE_PATH, num_points: int = 64) -> None:
+        self.num_points = num_points
+        self.templates: List[Tuple[str, np.ndarray]] = []
+        self.loading = True
+        self._loading_thread = threading.Thread(target=self._load_templates, args=(template_path,), daemon=True)
+        self._loading_thread.start()
