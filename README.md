@@ -6,8 +6,8 @@
 2. `cd` into the **root** directory
 3. Setup and activate a virtual env **(Python 3.12)**
 4. `pip install -r requirements.txt`
-
-TODO add dataset download instructions
+5. Download the `Unistroke gesture logs: XML` from [Wobbrock's Website](https://depts.washington.edu/acelab/proj/dollar/index.html)
+6. Move the dataset into the `datasets/xml_logs` directory
 
 # 1$ Gesture Recognizer
 
