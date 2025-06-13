@@ -114,20 +114,24 @@ class Recognizer:
     def _centroid(self, points: np.ndarray) -> np.ndarray:
         """Compute centroid of points."""
         return np.mean(points, axis=0)
+    
 
-    def recognize(self, points: np.ndarray) -> str:
-        """Recognize the input gesture."""
-        candidate = self._normalize(points)
+    def recognize(self, points: np.ndarray, *, normalize: bool = True) -> Tuple[str, np.ndarray]:
+        """Recognize the input gesture.
+        
+        Returns the label of the best matching template and the template itself.
+        """
+        candidate = self._normalize(points) if normalize else points
         best_score = float("inf")
-        best_label = ""
+        best_template: Tuple[str, np.ndarray] = ("", np.array([]))
 
         for label, template in self.templates:
             dist = self._path_distance(candidate, template)
             if dist < best_score:
                 best_score = dist
-                best_label = label
+                best_template = (label, template)
 
-        return best_label
+        return best_template[0], best_template[1]
 
     def _path_distance(self, a: np.ndarray, b: np.ndarray) -> float:
         """Compute average distance between corresponding points."""
