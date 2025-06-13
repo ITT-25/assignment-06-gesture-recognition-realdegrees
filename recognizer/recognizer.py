@@ -10,14 +10,14 @@ DEFAULT_TEMPLATE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 
 class Recognizer:
     """Python implementation of the 1$ unistroke recognizer based on this pseudo code: https://depts.washington.edu/acelab/proj/dollar/dollar.pdf."""
     def __init__(self, *, template_path: str = DEFAULT_TEMPLATE_PATH, num_points: int = 64, load_async: bool = False) -> None:
-        """Load gesture templates from XML files in the background. Recognize gestures based on strokes."""
         self.num_points = num_points
         self.templates: List[Tuple[str, np.ndarray]] = []
-        if not load_async:
-            self._load_templates(template_path, yield_to_main=False)
-        else:
+        self.loading = True
+        if load_async:
             self._loading_thread = threading.Thread(target=self._load_templates, args=(template_path,), daemon=True)
             self._loading_thread.start()
+        else:
+            self._load_templates(template_path)
 
     def _load_templates(self, template_path: str, yield_to_main: bool = True):
         xml_files = []
@@ -38,7 +38,7 @@ class Recognizer:
                 y = float(element.get("Y"))
                 points.append([x, y])
             points_array = np.array(points, dtype=float)
-            normalized_points = self._normalize(points_array)
+            normalized_points, _ = self.normalize(points_array)
             self.templates.append((label, normalized_points))
             # Loading bar
             if idx % 5 == 0 or idx == total:
@@ -51,13 +51,34 @@ class Recognizer:
                 time.sleep(0.001)  # Yield to main thread to reduce lag
         print()
 
-    def _normalize(self, points: np.ndarray) -> np.ndarray:
-        """Normalize input points."""
+
+    def normalize(self, points: np.ndarray) -> Tuple[np.ndarray, dict]:
+        # 1. Resample
         resampled = self._resample(points)
-        rotated = self._rotate_to_zero(resampled)
-        scaled = self._scale_to_square(rotated, 250.0)
-        translated = self._translate_to_origin(scaled)
-        return translated
+        # 2. Rotation
+        center_before_rot = self._centroid(resampled)
+        angle = np.arctan2(resampled[0, 1] - center_before_rot[1], resampled[0, 0] - center_before_rot[0])
+        rotated = self._rotate(resampled, -angle)
+        # 3. Scaling
+        min_vals = np.min(rotated, axis=0)
+        max_vals = np.max(rotated, axis=0)
+        scale = 250.0 / np.max(max_vals - min_vals)
+        scaled = rotated * scale
+        # 4. Translation
+        center = self._centroid(scaled)
+        translated = scaled - center
+        params = {
+            'angle': angle,
+            'scale': scale,
+            'center': center
+        }
+        return translated, params
+
+    def denormalize(self, points: np.ndarray, params: dict) -> np.ndarray:
+        denorm = points + params['center']
+        denorm = denorm / params['scale']
+        denorm = self._rotate(denorm, params['angle'])
+        return denorm
 
     def _resample(self, points: np.ndarray) -> np.ndarray:
         """Resample points to fixed number."""
@@ -90,12 +111,6 @@ class Recognizer:
 
         return np.array(resampled)
 
-    def _rotate_to_zero(self, points: np.ndarray) -> np.ndarray:
-        """Rotate points so that the first point is at zero angle to centroid."""
-        center = self._centroid(points)
-        angle = np.arctan2(points[0, 1] - center[1], points[0, 0] - center[0])
-        return self._rotate(points, -angle)
-
     def _rotate(self, points: np.ndarray, angle: float) -> np.ndarray:
         """Rotate points by given angle."""
         center = self._centroid(points)
@@ -127,22 +142,30 @@ class Recognizer:
         return np.mean(points, axis=0)
     
 
-    def recognize(self, points: np.ndarray, *, normalize: bool = True) -> Tuple[str, np.ndarray]:
+    def recognize(self, points: np.ndarray):
         """Recognize the input gesture.
-        
-        Returns the label of the best matching template and the template itself.
+        Returns the label, normalized template, denormalized template, and confidence (0-1).
         """
-        candidate = self._normalize(points) if normalize else points
+        normalized_points, params = self.normalize(points)
+        best_label, best_template, best_score = self.match(normalized_points)
+        denormalized_template = self.denormalize(best_template, params)
+        alpha = 0.01
+        confidence = np.exp(-alpha * best_score)
+        return best_label, normalized_points, denormalized_template, confidence
+
+    # TODO: Possible enhancement but would differ from the original algorithm: sort by avg distance and return the most dominant label in the N lowest distance candidates
+    def match(self, candidate: np.ndarray) -> Tuple[str, np.ndarray, float]:
+        """Match the candidate gesture against the templates.
+        
+        Returns the label of the best matching template, the template itself, and the distance score."""
         best_score = float("inf")
         best_template: Tuple[str, np.ndarray] = ("", np.array([]))
-
         for label, template in self.templates:
             dist = self._path_distance(candidate, template)
             if dist < best_score:
                 best_score = dist
                 best_template = (label, template)
-
-        return best_template[0], best_template[1]
+        return best_template[0], best_template[1], best_score
 
     def _path_distance(self, a: np.ndarray, b: np.ndarray) -> float:
         """Compute average distance between corresponding points."""
