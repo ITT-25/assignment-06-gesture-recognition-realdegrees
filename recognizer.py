@@ -5,7 +5,7 @@ from typing import List, Tuple
 import sys
 
 
-class UnistrokeRecognizer:
+class Recognizer:
     """Python implementation of the 1$ unistroke recognizer based on this pseudo code: https://depts.washington.edu/acelab/proj/dollar/dollar.pdf."""
     def __init__(self, *, template_path: str = "datasets/xml_logs", num_points: int = 64) -> None:
         """Load gesture templates from XML files with a loading bar."""

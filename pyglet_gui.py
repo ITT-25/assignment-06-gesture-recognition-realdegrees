@@ -2,10 +2,10 @@ from typing import List, Tuple
 import pyglet
 from pyglet.window import mouse
 import numpy as np
-from recognizer import UnistrokeRecognizer
+from recognizer import Recognizer
 
 class DrawingWindow(pyglet.window.Window):
-    def __init__(self, recognizer: UnistrokeRecognizer, *args, **kwargs):
+    def __init__(self, recognizer: Recognizer, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.recognizer = recognizer
         self.stroke_points: List[Tuple[float, float]] = []
@@ -47,6 +47,6 @@ class DrawingWindow(pyglet.window.Window):
             self.stroke_points = []
 
 if __name__ == "__main__":
-    recognizer = UnistrokeRecognizer()
+    recognizer = Recognizer()
     window = DrawingWindow(recognizer, width=600, height=400, caption="$1 Recognizer Demo")
     pyglet.app.run()
