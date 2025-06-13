@@ -4,14 +4,16 @@ import xml.etree.ElementTree as ET
 from typing import List, Tuple
 import sys
 
-
+DEFAULT_TEMPLATE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../datasets/xml_logs"))
 class Recognizer:
     """Python implementation of the 1$ unistroke recognizer based on this pseudo code: https://depts.washington.edu/acelab/proj/dollar/dollar.pdf."""
-    def __init__(self, *, template_path: str = "datasets/xml_logs", num_points: int = 64) -> None:
-        """Load gesture templates from XML files with a loading bar."""
+    def __init__(self, *, template_path: str = DEFAULT_TEMPLATE_PATH, num_points: int = 64) -> None:
+        """Load gesture templates from XML files. And recognize gestures based on strokes."""
         self.num_points = num_points
         data: List[Tuple[str, np.ndarray]] = []
         xml_files = []
+        if not os.path.exists(template_path):
+            print(f"Warning: Template path '{template_path}' does not exist.")
         for root, _, files in os.walk(template_path):
             for file_name in files:
                 if file_name.endswith(".xml"):

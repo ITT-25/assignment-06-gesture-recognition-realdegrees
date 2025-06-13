@@ -1,8 +1,9 @@
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 import pyglet
 from pyglet.window import mouse
 import numpy as np
 from recognizer import Recognizer
+import click
 
 class DrawingWindow(pyglet.window.Window):
     def __init__(self, recognizer: Recognizer, *args, **kwargs):
@@ -46,7 +47,12 @@ class DrawingWindow(pyglet.window.Window):
             self.label.text = f"Prediction: {pred}"
             self.stroke_points = []
 
-if __name__ == "__main__":
-    recognizer = Recognizer()
-    window = DrawingWindow(recognizer, width=600, height=400, caption="$1 Recognizer Demo")
+@click.command()
+@click.option("--template-path", "-p", type=click.Path(exists=True), help="Path to gesture template XML files")
+def main(template_path: Optional[str]):
+    recognizer = Recognizer(template_path=template_path) if template_path else Recognizer()
+    DrawingWindow(recognizer, width=600, height=400, caption="$1 Recognizer Demo")
     pyglet.app.run()
+
+if __name__ == "__main__":
+    main()
