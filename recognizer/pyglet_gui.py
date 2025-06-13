@@ -5,6 +5,8 @@ import numpy as np
 from recognizer import Recognizer, AsyncRecognizer
 import click
 
+# TODO: add background image support for task 2
+
 class DrawingWindow(pyglet.window.Window):
     def __init__(self, recognizer: Recognizer, *args, **kwargs):
         super().__init__(*args, **kwargs)

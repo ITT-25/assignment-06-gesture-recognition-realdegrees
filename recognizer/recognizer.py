@@ -5,6 +5,7 @@ from typing import List, Tuple
 import sys
 import threading
 import time
+from collections import defaultdict
 
 DEFAULT_TEMPLATE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../datasets/xml_logs"))
 
@@ -51,6 +52,7 @@ class Recognizer:
 
 
     def normalize(self, points: np.ndarray) -> Tuple[np.ndarray, dict]:
+        """Normalize the input points to a fixed number of points, scale, rotate, and translate them."""
         # 1. Resample
         resampled = self._resample(points)
         # 2. Rotation
@@ -148,8 +150,25 @@ class Recognizer:
         normalized_points, params = self.normalize(points)
         best_label, best_template, best_score = self.match(normalized_points)
         denormalized_template = self.denormalize(best_template, params)
-        alpha = 0.01
-        confidence = np.exp(-alpha * best_score)
+        
+        # Softmax confidence over class min distances
+        label_min_dist = defaultdict(lambda: float('inf'))
+        for label, template in self.templates:
+            dist = self._path_distance(normalized_points, template)
+            if dist < label_min_dist[label]:
+                label_min_dist[label] = dist
+                
+        labels = list(label_min_dist.keys())
+        min_dists = np.array([label_min_dist[label] for label in labels])
+        
+        # Compute logits and probabilities
+        logits = -min_dists  # negative distances
+        exp_logits = np.exp(logits - np.max(logits)) 
+    
+        # Normalize to get probabilities
+        probs = exp_logits / np.sum(exp_logits)
+        label_to_prob = dict(zip(labels, probs))
+        confidence = label_to_prob.get(best_label, 0.0)
         return best_label, normalized_points, denormalized_template, confidence
 
     # TODO: Possible enhancement but would differ from the original algorithm: sort by avg distance and return the most dominant label in the N lowest distance candidates
