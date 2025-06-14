@@ -1,4 +1,5 @@
-from typing import Optional
+from collections import deque
+from typing import Optional, Deque, Tuple
 from pynput.mouse import Controller
 import tkinter as tk
 from pointing_input.hand_detector import HandData
@@ -12,6 +13,8 @@ class MouseMapper:
         self.center_y = frame_height // 2
         self.screen_width, self.screen_height = self._get_screen_size()
         self.calibrated = False
+        self.position_history: Deque[Tuple[int, int]] = deque(maxlen=5)  # For smoothing
+        self.last_set_position: Optional[Tuple[int, int]] = None
 
     def _get_screen_size(self):
         try:
@@ -54,11 +57,24 @@ class MouseMapper:
         anchor_x, anchor_y = self.mouse_anchor
         screen_x = int(anchor_x + rel_x * (self.screen_width / self.frame_width))
         screen_y = int(anchor_y + rel_y * (self.screen_height / self.frame_height))
-        
         # Clamp to screen
         screen_x = max(0, min(self.screen_width - 1, screen_x))
         screen_y = max(0, min(self.screen_height - 1, screen_y))
-        self.mouse.position = (screen_x, screen_y)
+
+        # Smoothing: add to history and average
+        self.position_history.append((screen_x, screen_y))
+        avg_x = int(sum(p[0] for p in self.position_history) / len(self.position_history))
+        avg_y = int(sum(p[1] for p in self.position_history) / len(self.position_history))
+
+        # Minimum movement delta
+        min_delta = 3
+        if self.last_set_position is not None:
+            dx = avg_x - self.last_set_position[0]
+            dy = avg_y - self.last_set_position[1]
+            if abs(dx) < min_delta and abs(dy) < min_delta:
+                return  # Don't move if not enough change
+        self.mouse.position = (avg_x, avg_y)
+        self.last_set_position = (avg_x, avg_y)
 
     def process(self, left_hand: Optional[HandData], right_hand: Optional[HandData], use_right=True):
         hand = right_hand if use_right else left_hand
