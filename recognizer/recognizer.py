@@ -75,6 +75,8 @@ class Recognizer:
         return translated, params
 
     def denormalize(self, points: np.ndarray, params: dict) -> np.ndarray:
+        if points is None or len(points) == 0:
+            return points
         denorm = points + params['center']
         denorm = denorm / params['scale']
         denorm = self._rotate(denorm, params['angle'])
@@ -143,6 +145,8 @@ class Recognizer:
     
 
     def recognize(self, points: np.ndarray):
+        if points is None or len(points) == 0:
+            return None, None, None, 0.0
         """Recognize the input gesture.
         
         Returns the label, normalized template, denormalized template, and confidence (0-1).
