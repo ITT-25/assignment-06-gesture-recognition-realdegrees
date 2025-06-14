@@ -1,11 +1,12 @@
 import cv2
 import click
-from pointing_input import HandDetector
+from pointing_input import HandDetector, MouseMapper
 from recognizer import DrawingWindow, AsyncRecognizer
 
 hand_detector = HandDetector()
 recognizer = AsyncRecognizer()
 window = DrawingWindow(recognizer=recognizer)
+mouse = MouseMapper(window.width, window.height)
 
 @click.command()
 @click.option("--video-id", "-c", default=0, help="ID of the webcam you want to use", type=int, show_default=True)
@@ -33,6 +34,7 @@ def main(video_id: int, cam_width: int, cam_height: int, debug: bool) -> None:
         h, w = frame.shape[:2]
         # Detect hand landmarks
         right, left = hand_detector.detect_landmarks(frame) # ! Left and right are swapped due to the frame flipping
+        mouse.process(left, right, use_right=True)
 
         # If no hand is detected, clear the gesture queue
         if not left and not right:
