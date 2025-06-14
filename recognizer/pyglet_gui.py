@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 import pyglet
 from pyglet.window import mouse
 import numpy as np
@@ -16,9 +16,35 @@ class DrawingWindow(pyglet.window.Window):
         self.set_mouse_visible(True)
         pyglet.gl.glClearColor(1, 1, 1, 1)
         self.denorm_template = None  # Store denormalized template for drawing
+        self.pyglet_image = None  # Store the converted Pyglet image
+        
+    def run(self, on_update: Optional[Callable[[float], None]] = None):
+        """Run the Pyglet application."""
+        # Start update interval
+        def update(dt):
+            if on_update:
+                on_update(dt)
+            self.on_update(dt)
+        pyglet.clock.schedule_interval(lambda dt: update(dt), 1/60)  # 60 FPS
+        pyglet.app.run()
+        
+    def on_update(self, dt: float):
+        pass
+
+    def update_background(self, frame: np.ndarray):
+        # frame: numpy array (BGR)
+        import cv2
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        h, w, c = frame_rgb.shape
+        image_data = frame_rgb.flatten().tobytes()
+        self.pyglet_image = pyglet.image.ImageData(w, h, 'RGB', image_data, pitch=-w*3)
 
     def on_draw(self):
         self.clear()
+        # Draw OpenCV frame if available
+        if self.pyglet_image:
+            self.pyglet_image.blit(0, 0, width=self.width, height=self.height)
+            
         # Draw current stroke as simple lines between points
         if len(self.stroke_points) > 1:
             for i in range(len(self.stroke_points) - 1):
@@ -68,8 +94,8 @@ def main(template_path: Optional[str], async_loading: bool):
     if template_path:
         recognizer_args["template_path"] = template_path
     recognizer = AsyncRecognizer(**recognizer_args) if async_loading else Recognizer(**recognizer_args)
-    DrawingWindow(recognizer, width=600, height=400, caption="$1 Recognizer Demo")
-    pyglet.app.run()
+    window = DrawingWindow(recognizer, width=600, height=400, caption="$1 Recognizer Demo")
+    window.run()
 
 if __name__ == "__main__":
     main()
