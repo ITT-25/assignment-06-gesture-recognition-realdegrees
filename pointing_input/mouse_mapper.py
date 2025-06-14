@@ -11,6 +11,7 @@ class MouseMapper:
         self.center_x = frame_width // 2
         self.center_y = frame_height // 2
         self.screen_width, self.screen_height = self._get_screen_size()
+        self.calibrated = False
 
     def _get_screen_size(self):
         try:
@@ -33,6 +34,7 @@ class MouseMapper:
         self.center_y = int(y_norm * self.frame_height)
 
         self.mouse_anchor = self.mouse.position
+        self.calibrated = True
 
     def move_mouse_to_index(self, hand: HandData):
         """Move the mouse pointer to follow the index finger relative to the calibration center and mouse anchor."""
@@ -62,8 +64,20 @@ class MouseMapper:
         hand = right_hand if use_right else left_hand
         if not hand:
             return
-        if hand.gesture == "Pointing_Up":
+        if hand.gesture == "Pointing_Up" and self.is_index_fully_extended(hand):
+            if not self.calibrated:
+                self.calibrate_center(hand)
             self.move_mouse_to_index(hand)
-        elif hand.gesture == "Closed_Fist":
-            self.calibrate_center(hand)
-            print("Center calibrated")
+        else:
+            self.calibrated = False
+        
+    def is_index_fully_extended(self, hand: HandData) -> bool:
+        """Check if the index finger is fully extended (tip far from base)."""
+        if not hand or len(hand.landmarks) < 9:
+            return False
+        base = hand.landmarks[5]
+        tip = hand.landmarks[8]
+        dx = tip[0] - base[0]
+        dy = tip[1] - base[1]
+        distance = (dx ** 2 + dy ** 2) ** 0.5
+        return distance > 0.12
