@@ -49,7 +49,6 @@ def main(video_id: int, cam_width: int, cam_height: int, debug: bool) -> None:
                     y = int(landmark[1] * h)
                     cv2.circle(frame, (x, y), 3, (0, 255, 0), -1)
                     if i == 0:
-                        print(f"Left hand landmarks: ({x}, {y})")
                         cv2.putText(frame, left.gesture, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
             if right:
                 for i, landmark in enumerate(right.landmarks):
