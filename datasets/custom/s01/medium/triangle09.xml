@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Gesture Name="triangle09" Subject="1" Speed="medium" Number="9" NumPts="35" Millseconds="1650" AppName="Gestures" AppVer="1.0" Date="Sunday, June 15, 2025" TimeOfDay="04:21:12 AM">
+  <Point X="688" Y="496" T="0" />
+  <Point X="688" Y="495" T="1" />
+  <Point X="685" Y="486" T="41" />
+  <Point X="678" Y="469" T="82" />
+  <Point X="668" Y="446" T="124" />
+  <Point X="656" Y="419" T="168" />
+  <Point X="646" Y="400" T="206" />
+  <Point X="636" Y="380" T="252" />
+  <Point X="628" Y="368" T="296" />
+  <Point X="621" Y="354" T="339" />
+  <Point X="616" Y="345" T="382" />
+  <Point X="616" Y="344" T="382" />
+  <Point X="614" Y="342" T="422" />
+  <Point X="616" Y="342" T="591" />
+  <Point X="633" Y="342" T="629" />
+  <Point X="660" Y="342" T="668" />
+  <Point X="684" Y="341" T="707" />
+  <Point X="699" Y="341" T="746" />
+  <Point X="710" Y="341" T="785" />
+  <Point X="723" Y="341" T="825" />
+  <Point X="744" Y="341" T="866" />
+  <Point X="770" Y="340" T="911" />
+  <Point X="785" Y="339" T="949" />
+  <Point X="789" Y="339" T="992" />
+  <Point X="788" Y="343" T="1236" />
+  <Point X="778" Y="365" T="1274" />
+  <Point X="762" Y="393" T="1319" />
+  <Point X="748" Y="422" T="1357" />
+  <Point X="732" Y="449" T="1400" />
+  <Point X="721" Y="465" T="1442" />
+  <Point X="715" Y="480" T="1482" />
+  <Point X="709" Y="492" T="1523" />
+  <Point X="705" Y="497" T="1564" />
+  <Point X="703" Y="500" T="1609" />
+  <Point X="700" Y="503" T="1650" />
+</Gesture>

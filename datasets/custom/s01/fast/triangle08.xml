@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Gesture Name="triangle08" Subject="1" Speed="fast" Number="8" NumPts="14" Millseconds="550" AppName="Gestures" AppVer="1.0" Date="Sunday, June 15, 2025" TimeOfDay="04:30:08 AM">
+  <Point X="765" Y="454" T="0" />
+  <Point X="760" Y="446" T="0" />
+  <Point X="739" Y="421" T="38" />
+  <Point X="709" Y="390" T="75" />
+  <Point X="676" Y="360" T="119" />
+  <Point X="671" Y="354" T="155" />
+  <Point X="680" Y="348" T="230" />
+  <Point X="709" Y="335" T="269" />
+  <Point X="741" Y="322" T="312" />
+  <Point X="741" Y="336" T="396" />
+  <Point X="741" Y="376" T="433" />
+  <Point X="739" Y="418" T="469" />
+  <Point X="738" Y="443" T="509" />
+  <Point X="739" Y="446" T="550" />
+</Gesture>

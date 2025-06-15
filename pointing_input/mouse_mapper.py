@@ -135,8 +135,6 @@ class MouseMapper:
         if touch_ended:
             self.mouse.release(Button.left)
 
-
-
     def index_thumb_touching(self, hand: HandData) -> bool:
         """Check if the index finger is touching the thumb."""
         if not hand or len(hand.landmarks) < 9:
@@ -146,7 +144,7 @@ class MouseMapper:
         dx = index_tip[0] - thumb_tip[0]
         dy = index_tip[1] - thumb_tip[1]
         distance = (dx ** 2 + dy ** 2) ** 0.5
-        return distance < 0.0425
+        return distance < 0.043
     
     def middle_thumb_touching(self, hand: HandData) -> bool:
         """Check if the middle finger tip is touching the thumb tip."""
@@ -157,4 +155,4 @@ class MouseMapper:
         dx = middle_tip[0] - thumb_tip[0]
         dy = middle_tip[1] - thumb_tip[1]
         distance = (dx ** 2 + dy ** 2) ** 0.5
-        return distance < 0.0425
+        return distance < 0.043
