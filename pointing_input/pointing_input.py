@@ -47,14 +47,14 @@ def main(video_id: int, cam_width: int, cam_height: int, debug: bool) -> None:
                 for i, landmark in enumerate(left.landmarks):
                     x = int(landmark[0] * w)
                     y = int(landmark[1] * h)
-                    cv2.circle(frame, (x, y), 3, (0, 255, 0), -1)
+                    cv2.circle(frame, (x, y), 1, (0, 255, 0), -1)
                     if i == 0:
                         cv2.putText(frame, left.gesture, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
             if right:
                 for i, landmark in enumerate(right.landmarks):
                     x = int(landmark[0] * w)
                     y = int(landmark[1] * h)
-                    cv2.circle(frame, (x, y), 3, (255, 0, 0), -1)
+                    cv2.circle(frame, (x, y), 1, (255, 0, 0), -1)
                     if i == 0:
                         cv2.putText(frame, right.gesture, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
 
