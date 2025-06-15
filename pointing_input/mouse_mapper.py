@@ -133,12 +133,12 @@ class MouseMapper:
         
         # Clicking Logic
         # Transition: not touching -> touching
-        touch_started = current_state.middle and not prev_state.middle
+        touch_started = current_state.index and not prev_state.index
         if touch_started:
             self.mouse.press(Button.left)
 
         # Transition: touching -> not touching
-        touch_ended = not current_state.middle and prev_state.middle
+        touch_ended = not current_state.index and prev_state.index
         if touch_ended:
             self.mouse.release(Button.left)
 
