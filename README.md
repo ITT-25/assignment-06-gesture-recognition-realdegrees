@@ -41,7 +41,8 @@ python -m pointing_input.pointing_input --video-id 0 -d
 
 ## Control Instructions
 
-The application is controlled using simple gestures.     
+The application is controlled using simple gestures.   
+The controls work best with an open palm facing towards the camera.    
 
 - `Connecting` **index** finger and **thumb** will trigger `Left Mouse Button Down`  
 - `Releasing` **index** finger and **thumb** will trigger `Left Mouse Button Up`  
