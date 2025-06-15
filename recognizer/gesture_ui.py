@@ -1,6 +1,7 @@
 from typing import Callable, TYPE_CHECKING
 import pyglet
 from pyglet.window import mouse
+import time
 
 if TYPE_CHECKING:
     from recognizer.gesture_saver import GestureSaver
@@ -16,7 +17,10 @@ class GestureSaverUI:
         self.save_label = pyglet.text.Label(self.gesture_saver.save_label_text, font_size=16, x=240, y=26, anchor_x='center', anchor_y='center', color=(0,0,0,255))
         self.input_label = pyglet.text.Label('', font_size=16, x=15, y=26, anchor_x='left', anchor_y='center', color=(0,0,0,255))
         self.subject_label = pyglet.text.Label('', font_size=16, x=15, y=68, anchor_x='left', anchor_y='center', color=(0,0,0,255))
-        self.save_message_label = pyglet.text.Label('', font_size=12, x=10, y=170, anchor_x='left', anchor_y='bottom', color=(0,100,0,255))
+        self.save_message_label = pyglet.text.Label('', font_size=20, x=10, y=170, anchor_x='left', anchor_y='bottom', color=(0,100,0,255))
+        self._last_save_message = ''
+        self._save_message_time = 0.0
+        self._save_message_alpha = 255
         self.speed_button_width = 120
         self.speed_labels = [
             pyglet.text.Label(opt.capitalize(), font_size=16, x=10 + self.speed_button_width//2 + i*self.speed_button_width, y=110, anchor_x='center', anchor_y='center', color=(0,0,0,255))
@@ -42,8 +46,22 @@ class GestureSaverUI:
         self.subject_label.color = (0,0,0,255) if self.gesture_saver.subject_active or self.gesture_saver.subject_text else (120,120,120,255)
         self.subject_label.draw()
         if self.gesture_saver.save_message:
+            if self.gesture_saver.save_message != self._last_save_message:
+                self._last_save_message = self.gesture_saver.save_message
+                self._save_message_time = time.time()
+                self._save_message_alpha = 255
+            else:
+                elapsed = time.time() - self._save_message_time
+                fade_time = 4.0
+                if elapsed < fade_time:
+                    self._save_message_alpha = int(255 * (1 - elapsed / fade_time))
+                else:
+                    self._save_message_alpha = 0
+            color = (0, 100, 0, self._save_message_alpha)
             self.save_message_label.text = self.gesture_saver.save_message
-            self.save_message_label.draw()
+            self.save_message_label.color = color
+            if self._save_message_alpha > 0:
+                self.save_message_label.draw()
 
     def handle_mouse_press(self, x: int, y: int, button: int, speed_button_width: int, save_stroke_callback: Callable[[], None]):
         if button == mouse.LEFT:
