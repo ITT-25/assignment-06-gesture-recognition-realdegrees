@@ -42,13 +42,22 @@ class MouseMapper:
         self.center_x, self.center_y = self.get_centroid(hand)
         self.mouse_anchor = self.mouse.position
         self.calibrated = True
-        
+    
+    # Hardcoded based on https://ai.google.dev/edge/mediapipe/solutions/vision/gesture_recognizer#hand_landmark_model_bundle
     def get_centroid(self, hand: HandData) -> Tuple[int, int]:
-        """Calculate the centroid of the hand landmarks."""
+        """Calculate the centroid of the wrist and finger base."""
         if not hand or not hasattr(hand, "landmarks") or not hand.landmarks:
             return self.center_x, self.center_y
-        xs = [lm[0] for lm in hand.landmarks]
-        ys = [lm[1] for lm in hand.landmarks]
+
+        indices = [0, 1, 5, 9, 13, 17]
+        selected_landmarks = [
+            hand.landmarks[i] for i in indices if i < len(hand.landmarks)
+        ]
+        if not selected_landmarks:
+            return self.center_x, self.center_y
+
+        xs = [lm[0] for lm in selected_landmarks]
+        ys = [lm[1] for lm in selected_landmarks]
         centroid_x = int(sum(xs) / len(xs) * self.frame_width)
         centroid_y = int(sum(ys) / len(ys) * self.frame_height)
         return centroid_x, centroid_y
@@ -116,7 +125,6 @@ class MouseMapper:
                 self.touch_start = now
             if now - self.touch_start >= 0.07: # Only move if touching for at least 100ms to avoid movement when intending to click
                 if not self.calibrated:
-                    print("Calibrating center with middle finger position...")
                     self.calibrate_center(hand)
                 self.move_mouse(hand)
         else:
