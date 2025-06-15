@@ -4,6 +4,7 @@ from pynput.mouse import Controller, Button
 import tkinter as tk
 from pointing_input.hand_detector import HandData
 import math
+from time import time
 
 class HandState():
     """TypedDict to represent the state of thumb touch detection."""
@@ -23,6 +24,7 @@ class MouseMapper:
         self.position_history: Deque[Tuple[int, int]] = deque(maxlen=5)  # Mouse smoothing
         self.last_set_position: Optional[Tuple[int, int]] = None
         self.touch_state_window: Deque[HandState] = deque([HandState() for _ in range(10)], maxlen=10)  # Input smoothing
+        self.index_thumb_touch_start_time = None  # Track when thumb touch starts
 
     def _get_screen_size(self):
         try:
@@ -103,6 +105,9 @@ class MouseMapper:
 
     def process(self, left_hand: Optional[HandData], right_hand: Optional[HandData], use_right=True):
         hand = right_hand if use_right else left_hand
+        if hand and hand.gesture == "Closed_Fist":
+            # If the hand is a closed fist, do not process further
+            return
                 
         # Index finger is mapped to clicking and holding, Middle finger is mapped to dragging
         index_touching = self.index_thumb_touching(hand) if hand else False
@@ -112,8 +117,17 @@ class MouseMapper:
         self.touch_state_window.append(HandState(index_thumb_touch=index_touching, index_extended=index_extended))
         current_state = self.get_smoothed_touch_state()
         
-        # Movement logic with grace period
-        if current_state.index_extended or current_state.index_thumb_touch:
+        # Movement logic with grace period for index-thumb touch
+        move_by_index_extended = current_state.index_extended
+        move_by_index_thumb_touch = False
+        if current_state.index_thumb_touch and not move_by_index_extended:
+            if self.index_thumb_touch_start_time is None:
+                self.index_thumb_touch_start_time = time()
+            elif time() - self.index_thumb_touch_start_time >= 0.1:
+                move_by_index_thumb_touch = True
+        else:
+            self.index_thumb_touch_start_time = None
+        if move_by_index_extended or move_by_index_thumb_touch:
             if not self.calibrated:
                 self.calibrate_center(hand)
             self.move_mouse(hand)
