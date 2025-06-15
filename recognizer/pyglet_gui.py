@@ -87,12 +87,9 @@ class DrawingWindow(pyglet.window.Window):
             self.stroke_points = []
 
 @click.command()
-@click.option("--template-path", "-p", type=click.Path(exists=True), help="Path to gesture template XML files")
 @click.option("--async-loading", "-a", is_flag=True, help="Load templates asynchronously")
-def main(template_path: Optional[str], async_loading: bool):
+def main(async_loading: bool):
     recognizer_args = {}
-    if template_path:
-        recognizer_args["template_path"] = template_path
     recognizer = AsyncRecognizer(**recognizer_args) if async_loading else Recognizer(**recognizer_args)
     window = DrawingWindow(recognizer, width=600, height=400, caption="$1 Recognizer Demo")
     window.run()
