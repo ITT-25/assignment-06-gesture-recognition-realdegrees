@@ -50,13 +50,13 @@ class DrawingWindow(pyglet.window.Window):
             for i in range(len(self.stroke_points) - 1):
                 x1, y1 = self.stroke_points[i]
                 x2, y2 = self.stroke_points[i + 1]
-                pyglet.shapes.Line(x1, y1, x2, y2, thickness=2, color=(0, 0, 0)).draw()
+                pyglet.shapes.Line(x1, y1, x2, y2, thickness=3, color=(0, 255, 0)).draw()
         # Draw denormalized template if available
         if self.denorm_template is not None and len(self.denorm_template) > 1:
             for i in range(len(self.denorm_template) - 1):
                 x1, y1 = self.denorm_template[i]
                 x2, y2 = self.denorm_template[i + 1]
-                pyglet.shapes.Line(x1, y1, x2, y2, thickness=2, color=(255, 0, 0)).draw()
+                pyglet.shapes.Line(x1, y1, x2, y2, thickness=3, color=(255, 0, 0)).draw()
         self.label.draw()
 
     def on_mouse_press(self, x, y, button, modifiers):
