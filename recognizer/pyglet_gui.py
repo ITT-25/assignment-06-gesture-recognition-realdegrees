@@ -2,10 +2,10 @@ from typing import Callable, List, Optional, Set, Tuple
 import pyglet
 from pyglet.window import mouse
 import numpy as np
-from recognizer import Recognizer, AsyncRecognizer
-import click
-from recognizer.gesture_saver import GestureSaver
 from recognizer.gesture_ui import GestureSaverUI
+from recognizer.recognizer import Recognizer, AsyncRecognizer
+from recognizer.gesture_saver import GestureSaver
+import click
 import time
 import cv2
 

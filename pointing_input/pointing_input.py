@@ -1,7 +1,9 @@
 import cv2
 import click
-from pointing_input import HandDetector, MouseMapper
-from recognizer import DrawingWindow, AsyncRecognizer
+from pointing_input.hand_detector import HandDetector
+from pointing_input.mouse_mapper import MouseMapper
+from recognizer.recognizer import AsyncRecognizer
+from recognizer.pyglet_gui import DrawingWindow
 
 hand_detector = HandDetector()
 recognizer = AsyncRecognizer()
