@@ -10,6 +10,8 @@ class HandData:
         self.landmarks = landmarks
         self.gesture = gesture
 
+# ! TODO: Keep gesturerecognizer for now but seems like basic landmark distance comparisons are more than enough for these tasks, 
+# ! replacing gesture recognizer with simple hand landmark detection would improve speed and reduce complexity
 class HandDetector:
     def __init__(self, model_path: str = "pointing_input/gesture_recognizer.task"):
         base_options = python.BaseOptions(model_asset_buffer=open(model_path, "rb").read())
