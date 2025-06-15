@@ -22,7 +22,6 @@ class MouseMapper:
         self.position_history: Deque[Tuple[int, int]] = deque(maxlen=5)  # For smoothing
         self.last_set_position: Optional[Tuple[int, int]] = None
         self.touch_state_window: Deque[ThumbTouchState] = deque([ThumbTouchState() for _ in range(5)], maxlen=5)  # Sliding window for smoothing
-        self.touch_start: Optional[float] = None
 
     def _get_screen_size(self):
         try:
@@ -100,7 +99,6 @@ class MouseMapper:
         return smoothed
 
     def process(self, left_hand: Optional[HandData], right_hand: Optional[HandData], use_right=True):
-        import time
         hand = right_hand if use_right else left_hand
                 
         # Index finger is mapped to clicking and holding, Middle finger is mapped to dragging
@@ -110,18 +108,13 @@ class MouseMapper:
         prev_state = self.get_smoothed_touch_state()    
         self.touch_state_window.append(ThumbTouchState(index=index_touching, middle=middle_touching))
         current_state = self.get_smoothed_touch_state()
-        now = time.time()
         
         # Movement logic with grace period
-        if current_state.index or current_state.middle:
-            if self.touch_start is None:
-                self.touch_start = now
-            if now - self.touch_start >= 0.05: # Only move if touching for at least 70ms to avoid movement when intending to click
-                if not self.calibrated:
-                    self.calibrate_center(hand)
-                self.move_mouse(hand)
+        if current_state.middle:
+            if not self.calibrated:
+                self.calibrate_center(hand)
+            self.move_mouse(hand)
         else:
-            self.touch_start = None
             self.calibrated = False  # Reset calibration if middle finger is not touching
         
         # Clicking Logic
@@ -144,7 +137,7 @@ class MouseMapper:
         dx = index_tip[0] - thumb_tip[0]
         dy = index_tip[1] - thumb_tip[1]
         distance = (dx ** 2 + dy ** 2) ** 0.5
-        return distance < 0.043
+        return distance < 0.055
     
     def middle_thumb_touching(self, hand: HandData) -> bool:
         """Check if the middle finger tip is touching the thumb tip."""
@@ -155,4 +148,4 @@ class MouseMapper:
         dx = middle_tip[0] - thumb_tip[0]
         dy = middle_tip[1] - thumb_tip[1]
         distance = (dx ** 2 + dy ** 2) ** 0.5
-        return distance < 0.043
+        return distance < 0.055
