@@ -85,14 +85,7 @@ class MouseMapper:
         self.position_history.append((screen_x, screen_y))
         avg_x = int(sum(p[0] for p in self.position_history) / len(self.position_history))
         avg_y = int(sum(p[1] for p in self.position_history) / len(self.position_history))
-
-        # Minimum movement delta
-        min_delta = 5
-        if self.last_set_position is not None:
-            dx = avg_x - self.last_set_position[0]
-            dy = avg_y - self.last_set_position[1]
-            if abs(dx) < min_delta and abs(dy) < min_delta:
-                return  # Don't move if not enough change
+        
         self.mouse.position = (avg_x, avg_y)
         self.last_set_position = (avg_x, avg_y)
 
@@ -123,7 +116,7 @@ class MouseMapper:
         if current_state.index or current_state.middle:
             if self.touch_start is None:
                 self.touch_start = now
-            if now - self.touch_start >= 0.07: # Only move if touching for at least 100ms to avoid movement when intending to click
+            if now - self.touch_start >= 0.05: # Only move if touching for at least 70ms to avoid movement when intending to click
                 if not self.calibrated:
                     self.calibrate_center(hand)
                 self.move_mouse(hand)
@@ -153,7 +146,7 @@ class MouseMapper:
         dx = index_tip[0] - thumb_tip[0]
         dy = index_tip[1] - thumb_tip[1]
         distance = (dx ** 2 + dy ** 2) ** 0.5
-        return distance < 0.035
+        return distance < 0.0425
     
     def middle_thumb_touching(self, hand: HandData) -> bool:
         """Check if the middle finger tip is touching the thumb tip."""
@@ -164,4 +157,4 @@ class MouseMapper:
         dx = middle_tip[0] - thumb_tip[0]
         dy = middle_tip[1] - thumb_tip[1]
         distance = (dx ** 2 + dy ** 2) ** 0.5
-        return distance < 0.035
+        return distance < 0.0425
