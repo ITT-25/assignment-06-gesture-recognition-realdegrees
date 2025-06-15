@@ -30,23 +30,10 @@ class DrawingWindow(pyglet.window.Window):
     def run(self, on_update: Optional[Callable[[float], None]] = None):
         """Run the Pyglet application."""
         # Start update interval
-        def update(dt):
-            if on_update:
-                on_update(dt)
-            self.on_update(dt)
-        pyglet.clock.schedule_interval(lambda dt: update(dt), 1/120)
+        if on_update:
+            pyglet.clock.schedule_interval(lambda dt: on_update(dt), 1/30)
         pyglet.app.run()
         
-    def on_update(self, dt: float):
-        if len(self.stroke_points) > 0:
-            # Only sample if mouse is down (drawing)
-            if mouse.LEFT in self._mouse_buttons:
-                x, y = self._mouse_x, self._mouse_y
-                
-                # Only add if position changed (avoid duplicates)
-                if (x, y) != self.stroke_points[-1]:
-                    self.stroke_points.append((x, y))
-                    self.stroke_times.append(int(time.time() * 1000))
 
     def update_background(self, frame: np.ndarray):
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -103,7 +90,6 @@ class DrawingWindow(pyglet.window.Window):
         # Only allow drawing if not interacting with input or save button
         if not self.gesture_saver.input_active and not (200 <= x <= 280 and 10 <= y <= 42):
             if buttons & mouse.LEFT:
-                import time
                 self.stroke_points.append((x, y))
                 self.stroke_times.append(int(time.time() * 1000))
                 self._mouse_x, self._mouse_y = x, y
