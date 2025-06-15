@@ -8,8 +8,10 @@ if TYPE_CHECKING:
 
 
 class GestureSaverUI:
-    def __init__(self, gesture_saver: "GestureSaver"):
+    def __init__(self, gesture_saver: "GestureSaver", window_width: int = 800, window_height: int = 600):
         self.gesture_saver = gesture_saver
+        self.window_width = window_width
+        self.window_height = window_height
         self.input_box = pyglet.shapes.Rectangle(10, 10, 180, 32, color=(220,220,220))
         self.subject_box = pyglet.shapes.Rectangle(10, 52, 180, 32, color=(220,220,220))
         self.speed_box = pyglet.shapes.Rectangle(10, 94, 360, 32, color=(220,220,220))
@@ -17,7 +19,7 @@ class GestureSaverUI:
         self.save_label = pyglet.text.Label(self.gesture_saver.save_label_text, font_size=16, x=240, y=26, anchor_x='center', anchor_y='center', color=(0,0,0,255))
         self.input_label = pyglet.text.Label('', font_size=16, x=15, y=26, anchor_x='left', anchor_y='center', color=(0,0,0,255))
         self.subject_label = pyglet.text.Label('', font_size=16, x=15, y=68, anchor_x='left', anchor_y='center', color=(0,0,0,255))
-        self.save_message_label = pyglet.text.Label('', font_size=20, x=10, y=170, anchor_x='left', anchor_y='bottom', color=(0,100,0,255))
+        self.save_message_label = pyglet.text.Label('', font_size=20, x=10, y=10, anchor_x='right', anchor_y='bottom', color=(0,255,0,255))
         self._last_save_message = ''
         self._save_message_time = 0.0
         self._save_message_alpha = 255
@@ -53,11 +55,19 @@ class GestureSaverUI:
             else:
                 elapsed = time.time() - self._save_message_time
                 fade_time = 4.0
+                # Quadratic fade
                 if elapsed < fade_time:
-                    self._save_message_alpha = int(255 * (1 - elapsed / fade_time))
+                    t = elapsed / fade_time
+                    self._save_message_alpha = int(255 * (1 - t * t))
                 else:
                     self._save_message_alpha = 0
-            color = (0, 100, 0, self._save_message_alpha)
+            color = (100, 255, 100, self._save_message_alpha)
+
+            
+            self.save_message_label.x = self.window_width - 20
+            self.save_message_label.y = 20
+            self.save_message_label.anchor_x = 'right'
+            self.save_message_label.anchor_y = 'bottom'
             self.save_message_label.text = self.gesture_saver.save_message
             self.save_message_label.color = color
             if self._save_message_alpha > 0:

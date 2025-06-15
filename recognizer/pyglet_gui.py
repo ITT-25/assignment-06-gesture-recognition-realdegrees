@@ -23,7 +23,7 @@ class DrawingWindow(pyglet.window.Window):
         
         # Gesture Saving
         self.gesture_saver = GestureSaver()
-        self.save_ui = GestureSaverUI(self.gesture_saver)
+        self.save_ui = GestureSaverUI(self.gesture_saver, self.width, self.height)
         self._mouse_buttons: Set[int] = set()
         self._mouse_x, self._mouse_y = 0, 0
 
