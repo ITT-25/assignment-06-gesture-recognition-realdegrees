@@ -50,3 +50,6 @@ The application is controlled using simple gestures.
 
 You can quickly tap index and thumb together to simulate a click.  
 Now you can draw in the recognizer GUI.  
+
+> ⚠️ The inputs are actively smoothed slightly to allow precise movement at the cost of a minimal delay
+The delay is noticeable but better than jittery input
