@@ -54,3 +54,8 @@ Now you can draw in the recognizer GUI.
 
 > ⚠️ The inputs are actively smoothed slightly to allow precise movement at the cost of a minimal delay
 The delay is noticeable but better than jittery input
+
+# Comparing Gesture Recognizers
+
+> Test Datasets: The datasets are located in the [datasets/xml_logs](datasets/xml_logs) and [datasets/custom](datasets/custom) directories.  
+When the the notebook loads them it selects an equal number of samples from each dataset and loads them in the same way.
