@@ -118,7 +118,7 @@ class GestureSaverUI:
         
         # Draw custom templates label(s) at bottom right, stacking up
         label_counts = {}
-        for label, _, _ in self.recognizer.custom_templates:
+        for label, _, _, _ in self.recognizer.custom_templates:
             label_counts[label] = label_counts.get(label, 0) + 1
         self.custom_templates_labels.clear()
         base_y = 10

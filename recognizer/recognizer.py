@@ -15,7 +15,7 @@ class Recognizer:
     def __init__(self, *, num_points: int = 64) -> None:
         self.num_points = num_points
         self.templates: List[Tuple[str, np.ndarray]] = []
-        self.custom_templates: List[Tuple[str, np.ndarray, List[int]]] = []
+        self.custom_templates: List[Tuple[str, np.ndarray, List[int], np.ndarray]] = []
         self.loading = True
         self._load_templates(DEFAULT_TEMPLATE_PATH, yield_to_main=False)
 
@@ -39,7 +39,7 @@ class Recognizer:
                 points.append([x, y])
             points_array = np.array(points, dtype=float)
             normalized_points, _ = self.normalize(points_array)
-            self.templates.append((label, normalized_points, [int(element.get("T")) for element in xml_root.findall("Point")]))
+            self.templates.append((label, normalized_points, [int(element.get("T")) for element in xml_root.findall("Point")], points_array))
             # Loading bar
             if idx % 5 == 0 or idx == total:
                 bar_len = 30
@@ -159,7 +159,7 @@ class Recognizer:
         
         # Softmax confidence over class min distances
         label_min_dist = defaultdict(lambda: float('inf'))
-        for label, template, _ in self.custom_templates + self.templates:
+        for label, template, _, _ in self.custom_templates + self.templates:
             dist = self._path_distance(normalized_points, template)
             if dist < label_min_dist[label]:
                 label_min_dist[label] = dist
@@ -183,7 +183,7 @@ class Recognizer:
             print("Cannot add empty or unnamed template.")
             return
         normalized_points, _ = self.normalize(points)
-        self.custom_templates.append((label, normalized_points, times))
+        self.custom_templates.append((label, normalized_points, times, points))
 
     def clear_custom_templates(self):
         """Clear all custom templates."""
@@ -196,7 +196,7 @@ class Recognizer:
         Returns the label of the best matching template, the template itself, and the distance score."""
         best_score = float("inf")
         best_template: Tuple[str, np.ndarray] = ("", np.array([]))
-        for label, template, _ in [*self.custom_templates, *self.templates]:
+        for label, template, _, _ in [*self.custom_templates, *self.templates]:
             dist = self._path_distance(candidate, template)
             if dist < best_score:
                 best_score = dist

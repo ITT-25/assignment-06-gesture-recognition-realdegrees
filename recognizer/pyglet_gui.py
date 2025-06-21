@@ -117,7 +117,7 @@ class DrawingWindow(pyglet.window.Window):
 
     def save_custom_templates(self, subject: str):
         """Save all custom templates to the recognizer."""
-        for label, points, times in self.recognizer.custom_templates:
+        for label, _, times, points in self.recognizer.custom_templates:
             self.gesture_saver.save_gesture(label, subject, points, times)
         print("Custom templates saved.")
 
