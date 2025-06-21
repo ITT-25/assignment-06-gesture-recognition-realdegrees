@@ -15,6 +15,7 @@ class Recognizer:
     def __init__(self, *, num_points: int = 64) -> None:
         self.num_points = num_points
         self.templates: List[Tuple[str, np.ndarray]] = []
+        self.custom_templates: List[Tuple[str, np.ndarray, List[int]]] = []
         self.loading = True
         self._load_templates(DEFAULT_TEMPLATE_PATH, yield_to_main=False)
 
@@ -38,7 +39,7 @@ class Recognizer:
                 points.append([x, y])
             points_array = np.array(points, dtype=float)
             normalized_points, _ = self.normalize(points_array)
-            self.templates.append((label, normalized_points))
+            self.templates.append((label, normalized_points, [int(element.get("T")) for element in xml_root.findall("Point")]))
             # Loading bar
             if idx % 5 == 0 or idx == total:
                 bar_len = 30
@@ -82,9 +83,10 @@ class Recognizer:
         denorm = self._rotate(denorm, params['angle'])
         return denorm
 
-    def _resample(self, points: np.ndarray) -> np.ndarray:
+    def _resample(self, points: np.ndarray | list) -> np.ndarray:
         """Resample points to fixed number."""
-        points = points.tolist()
+        if isinstance(points, np.ndarray):
+            points = points.tolist()
         distances = np.sqrt(np.sum(np.diff(points, axis=0)**2, axis=1))
         path_length = np.sum(distances)
         interval = path_length / (self.num_points - 1)
@@ -144,8 +146,8 @@ class Recognizer:
         return np.mean(points, axis=0)
     
 
-    def recognize(self, points: np.ndarray):
-        if points is None or len(points) == 0:
+    def recognize(self, points: np.ndarray) -> Tuple[str, np.ndarray, np.ndarray, float]:
+        if points is None or len(points) == 0 or (len(self.templates) == 0 and len(self.custom_templates) == 0):
             return None, None, None, 0.0
         """Recognize the input gesture.
         
@@ -157,7 +159,7 @@ class Recognizer:
         
         # Softmax confidence over class min distances
         label_min_dist = defaultdict(lambda: float('inf'))
-        for label, template in self.templates:
+        for label, template, _ in self.custom_templates + self.templates:
             dist = self._path_distance(normalized_points, template)
             if dist < label_min_dist[label]:
                 label_min_dist[label] = dist
@@ -174,6 +176,18 @@ class Recognizer:
         label_to_prob = dict(zip(labels, probs))
         confidence = label_to_prob.get(best_label, 0.0)
         return best_label, normalized_points, denormalized_template, confidence
+    
+    def add_custom_template(self, label: str, points: np.ndarray, times: List[int]):
+        """Add a new template to the recognizer."""
+        if points is None or len(points) == 0 or label is None or len(label) == 0:
+            print("Cannot add empty or unnamed template.")
+            return
+        normalized_points, _ = self.normalize(points)
+        self.custom_templates.append((label, normalized_points, times))
+
+    def clear_custom_templates(self):
+        """Clear all custom templates."""
+        self.custom_templates.clear()
 
     # TODO: Possible enhancement but would differ from the original algorithm: sort by avg distance and return the most dominant label in the N lowest distance candidates
     def match(self, candidate: np.ndarray) -> Tuple[str, np.ndarray, float]:
@@ -182,7 +196,7 @@ class Recognizer:
         Returns the label of the best matching template, the template itself, and the distance score."""
         best_score = float("inf")
         best_template: Tuple[str, np.ndarray] = ("", np.array([]))
-        for label, template in self.templates:
+        for label, template, _ in [*self.custom_templates, *self.templates]:
             dist = self._path_distance(candidate, template)
             if dist < best_score:
                 best_score = dist
@@ -198,6 +212,7 @@ class AsyncRecognizer(Recognizer):
     def __init__(self, *, template_path: str = DEFAULT_TEMPLATE_PATH, num_points: int = 64) -> None:
         self.num_points = num_points
         self.templates: List[Tuple[str, np.ndarray]] = []
+        self.custom_templates: List[Tuple[str, np.ndarray]] = []
         self.loading = True
         self._loading_thread = threading.Thread(target=self._load_templates, args=(template_path,), daemon=True)
         self._loading_thread.start()

@@ -1,119 +1,183 @@
-from typing import Callable, TYPE_CHECKING
+from typing import Callable, TYPE_CHECKING, List
 import pyglet
 from pyglet.window import mouse
-import time
+from recognizer.text_input import TextInput
 
 if TYPE_CHECKING:
     from recognizer.gesture_saver import GestureSaver
+    from recognizer.recognizer import Recognizer
+    from recognizer.pyglet_gui import DrawingWindow
 
 
 class GestureSaverUI:
-    def __init__(self, gesture_saver: "GestureSaver", window_width: int = 800, window_height: int = 600):
+    def __init__(self, gesture_saver: "GestureSaver", recognizer: "Recognizer", window: "DrawingWindow", *, window_width: int = 800, window_height: int = 600, autocapture_state=False, add_callback: Callable[[], None] = None, save_callback: Callable[[], None] = None):
         self.gesture_saver = gesture_saver
+        self.window = window
         self.window_width = window_width
         self.window_height = window_height
-        self.input_box = pyglet.shapes.Rectangle(10, 10, 180, 32, color=(220,220,220))
-        self.subject_box = pyglet.shapes.Rectangle(10, 52, 180, 32, color=(220,220,220))
-        self.speed_box = pyglet.shapes.Rectangle(10, 94, 360, 32, color=(220,220,220))
-        self.save_button = pyglet.shapes.Rectangle(200, 10, 80, 32, color=(180,220,180))
-        self.save_label = pyglet.text.Label(self.gesture_saver.save_label_text, font_size=16, x=240, y=26, anchor_x='center', anchor_y='center', color=(0,0,0,255))
-        self.input_label = pyglet.text.Label('', font_size=16, x=15, y=26, anchor_x='left', anchor_y='center', color=(0,0,0,255))
-        self.subject_label = pyglet.text.Label('', font_size=16, x=15, y=68, anchor_x='left', anchor_y='center', color=(0,0,0,255))
-        self.save_message_label = pyglet.text.Label('', font_size=20, x=10, y=10, anchor_x='right', anchor_y='bottom', color=(0,255,0,255))
+        self.recognizer = recognizer
+        self.autocapture = autocapture_state
+        self.add_callback = add_callback if add_callback else lambda: None
+        self.save_callback = save_callback if save_callback else lambda: None
+        
+        self.input_active = False
+        self.subject_active = False
+        
+        self.batch = pyglet.graphics.Batch()
+        margin = 5
+        spacing = 10
+     
+        self.autocapture_label = pyglet.text.Label('Auto Add: Off', font_size=14, x=window_width - margin - spacing, y=window_height-25, anchor_x='right', anchor_y='center', color=(0,0,0,255))
+        w, h = self.autocapture_label.content_width, self.autocapture_label.content_height
+        self.autocapture_button = pyglet.shapes.Rectangle(
+            self.autocapture_label.x - w - margin, 
+            self.autocapture_label.y - h/2 - margin, 
+            w + margin*2, 
+            h + margin*2, 
+            color=(180,255,180), 
+            batch=self.batch
+        )
+
+        self.clear_label = pyglet.text.Label('Clear', font_size=14, x=self.autocapture_button.x - margin - spacing, y=window_height-25, anchor_x='right', anchor_y='center', color=(0,0,0,255))
+        w, h = self.clear_label.content_width, self.clear_label.content_height
+        self.clear_button = pyglet.shapes.Rectangle(
+            self.clear_label.x - w - margin, 
+            self.clear_label.y - h/2 - margin, 
+            w + margin*2, 
+            h + margin*2, 
+            color=(255,100,100), 
+            batch=self.batch
+        )
+
+        self.add_label = pyglet.text.Label('Add', font_size=14, x=self.clear_button.x - margin - spacing, y=window_height-25, anchor_x='right', anchor_y='center', color=(0,0,0,255))
+        w, h = self.add_label.content_width, self.add_label.content_height
+        self.add_button = pyglet.shapes.Rectangle(
+            self.add_label.x - w - margin,
+            self.add_label.y - h/2 - margin,
+            w + margin*2,
+            h + margin*2,
+            color=(100,200,255),
+            batch=self.batch
+        )
+
+        self.gesture_name_input = TextInput(
+            window=self.window,
+            x=self.add_button.x - margin - spacing,
+            y=window_height-25,
+            align='right',
+            font_size=14,
+            title='Gesture Name',
+        )
+        self.subject_input = TextInput(
+            window=self.window,
+            x=15,
+            y=25,
+            align='left',
+            font_size=14,
+            only_numerical=True,
+            title='Subject ID'
+        )
+        
+        self.save_label = pyglet.text.Label(
+            'Save',
+            font_size=14,
+            x=self.subject_input.input_box.x + self.subject_input.input_box.width + spacing + 20,
+            y=self.subject_input.input_box.y + self.subject_input.input_box.height / 2,
+            anchor_x='left',
+            anchor_y='center',
+            color=(0,0,0,255)
+        )
+        w, h = self.save_label.content_width, self.save_label.content_height
+        self.save_button = pyglet.shapes.Rectangle(
+            self.save_label.x - margin,
+            self.save_label.y - h/2 - margin,
+            w + margin*2,
+            h + margin*2,
+            color=(100,255,100),
+            batch=self.batch
+        )
+
+        self.custom_templates_labels: List[pyglet.text.Label] = []
         self._last_save_message = ''
-        self._save_message_time = 0.0
+        self._save_message_time = 0
         self._save_message_alpha = 255
-        self.speed_button_width = 120
-        self.speed_labels = [
-            pyglet.text.Label(opt.capitalize(), font_size=16, x=10 + self.speed_button_width//2 + i*self.speed_button_width, y=110, anchor_x='center', anchor_y='center', color=(0,0,0,255))
-            for i, opt in enumerate(self.gesture_saver.speed_options)
-        ]
 
     def draw(self):
-        self.input_box.draw()
+        self.batch.draw()
+        self.gesture_name_input.draw()
+
+        self.subject_input.draw()
         self.save_button.draw()
-        self.save_label.text = self.gesture_saver.save_label_text
         self.save_label.draw()
-        self.subject_box.draw()
-        self.speed_box.draw()
-        for i, label in enumerate(self.speed_labels):
-            x0 = 10 + i*self.speed_button_width
-            color = (180,220,180) if i == self.gesture_saver.selected_speed else (220,220,220)
-            pyglet.shapes.Rectangle(x0, 94, self.speed_button_width, 32, color=color).draw()
-            label.draw()
-        self.input_label.text = self.gesture_saver.input_text if self.gesture_saver.input_active or self.gesture_saver.input_text else 'Enter filename...'
-        self.input_label.color = (0,0,0,255) if self.gesture_saver.input_active or self.gesture_saver.input_text else (120,120,120,255)
-        self.input_label.draw()
-        self.subject_label.text = self.gesture_saver.subject_text if self.gesture_saver.subject_active or self.gesture_saver.subject_text else 'Enter subject...'
-        self.subject_label.color = (0,0,0,255) if self.gesture_saver.subject_active or self.gesture_saver.subject_text else (120,120,120,255)
-        self.subject_label.draw()
-        if self.gesture_saver.save_message:
-            if self.gesture_saver.save_message != self._last_save_message:
-                self._last_save_message = self.gesture_saver.save_message
-                self._save_message_time = time.time()
-                self._save_message_alpha = 255
-            else:
-                elapsed = time.time() - self._save_message_time
-                fade_time = 4.0
-                # Quadratic fade
-                if elapsed < fade_time:
-                    t = elapsed / fade_time
-                    self._save_message_alpha = int(255 * (1 - t * t))
-                else:
-                    self._save_message_alpha = 0
-            color = (100, 255, 100, self._save_message_alpha)
+        
+        self.add_label.draw()
+        self.clear_label.draw()
+        self.autocapture_button.color = (180,255,180) if self.autocapture else (255,180,180)
+        self.autocapture_label.text = 'Auto Add: On' if self.autocapture else 'Auto Add: Off'
+        self.autocapture_label.draw()
+        
+        # Draw custom templates label(s) at bottom right, stacking up
+        label_counts = {}
+        for label, _, _ in self.recognizer.custom_templates:
+            label_counts[label] = label_counts.get(label, 0) + 1
+        self.custom_templates_labels.clear()
+        base_y = 10
+        line_height = 16
+        if label_counts:
+            lbl = pyglet.text.Label("Custom Templates", font_size=12, x=self.window_width-10, y=base_y, anchor_x='right', anchor_y='bottom', color=(80,80,80,255))
+            self.custom_templates_labels.append(lbl)
+            lines = [f"{lbl}: {cnt}" for lbl, cnt in sorted(label_counts.items())]
+            for i, line in enumerate(reversed(lines)):
+                y = base_y + line_height * (i+1)
+                lbl = pyglet.text.Label(line, font_size=12, x=self.window_width-10, y=y, anchor_x='right', anchor_y='bottom', color=(0,0,0,255))
+                self.custom_templates_labels.append(lbl)
+        else:
+            lbl = pyglet.text.Label("No custom templates", font_size=12, x=self.window_width-10, y=base_y, anchor_x='right', anchor_y='bottom', color=(120,120,120,255))
+            self.custom_templates_labels.append(lbl)
+        for lbl in self.custom_templates_labels:
+            lbl.draw()
 
-            
-            self.save_message_label.x = self.window_width - 20
-            self.save_message_label.y = 20
-            self.save_message_label.anchor_x = 'right'
-            self.save_message_label.anchor_y = 'bottom'
-            self.save_message_label.text = self.gesture_saver.save_message
-            self.save_message_label.color = color
-            if self._save_message_alpha > 0:
-                self.save_message_label.draw()
-
-    def handle_mouse_press(self, x: int, y: int, button: int, speed_button_width: int, save_stroke_callback: Callable[[], None]):
+    def handle_mouse_press(self, x: int, y: int, button: int, save_callback: Callable[[str], None]) -> bool:
+        def is_pressed(rect: pyglet.shapes.Rectangle, x: int, y: int) -> bool:
+            return (rect.x <= x <= rect.x + rect.width and rect.y <= y <= rect.y + rect.height)
         if button == mouse.LEFT:
-            for i in range(3):
-                x0 = 10 + i*speed_button_width
-                if x0 <= x <= x0 + speed_button_width and 94 <= y <= 126:
-                    self.gesture_saver.selected_speed = i
-                    return True
-            if 10 <= x <= 190 and 52 <= y <= 84:
-                self.gesture_saver.subject_active = True
-                self.gesture_saver.input_active = False
+            # Add button
+            if is_pressed(self.add_button, x, y):
+                self.add_callback()
                 return True
-            if 10 <= x <= 190 and 10 <= y <= 42:
-                self.gesture_saver.input_active = True
-                self.gesture_saver.subject_active = False
+            # Clear button
+            if is_pressed(self.clear_button, x, y):
+                self._clear_custom_templates()
                 return True
-            else:
-                self.gesture_saver.input_active = False
-                self.gesture_saver.subject_active = False
-            if 200 <= x <= 280 and 10 <= y <= 42:
-                save_stroke_callback()
+            # Autocapture button
+            if is_pressed(self.autocapture_button, x, y):
+                self.autocapture = not self.autocapture
                 return True
+            # Save button
+            if is_pressed(self.save_button, x, y):
+                subject = self.subject_input.get_text().strip()
+                if subject != "":
+                    save_callback(subject)
+                else:
+                    print("Subject ID cannot be empty.")
+                return True
+            return (
+                is_pressed(self.gesture_name_input.input_box, x, y) or
+                is_pressed(self.subject_input.input_box, x, y)
+            )
         return False
 
-    def handle_text(self, text: str):
-        if self.gesture_saver.input_active:
-            if text == '\r' or text == '\n':
-                self.gesture_saver.input_active = False
-            elif text == '\b':
-                self.gesture_saver.input_text = self.gesture_saver.input_text[:-1]
-            elif len(text) == 1 and len(self.gesture_saver.input_text) < 32:
-                self.gesture_saver.input_text += text
-        elif self.gesture_saver.subject_active:
-            if text == '\r' or text == '\n':
-                self.gesture_saver.subject_active = False
-            elif text == '\b':
-                self.gesture_saver.subject_text = self.gesture_saver.subject_text[:-1]
-            elif text.isdigit() and (len(self.gesture_saver.subject_text) > 0 or text != '0') and len(self.gesture_saver.subject_text) < 5:
-                self.gesture_saver.subject_text += text
+    def get_gesture_name_input(self) -> str:
+        text = self.gesture_name_input.get_text().strip()
+        if text == '<Gesture Name>':
+            return ''
+        return text
 
-    def handle_key_press(self, symbol: int):
-        if self.gesture_saver.input_active and symbol == pyglet.window.key.BACKSPACE:
-            self.gesture_saver.input_text = self.gesture_saver.input_text[:-1]
-        elif self.gesture_saver.subject_active and symbol == pyglet.window.key.BACKSPACE:
-            self.gesture_saver.subject_text = self.gesture_saver.subject_text[:-1]
+    def get_subject_input(self) -> str:
+        text = self.subject_input.get_text().strip()
+        if text == '<Subject ID>':
+            return ''
+        return text
+
+    def _clear_custom_templates(self):
+        self.recognizer.clear_custom_templates()
