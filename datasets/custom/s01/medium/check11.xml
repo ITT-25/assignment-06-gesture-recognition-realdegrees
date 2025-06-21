@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Gesture Name="check11" Subject="1" Speed="medium" Number="11" NumPts="22" Millseconds="1057" AppName="Gestures" AppVer="1.0" Date="Saturday, June 21, 2025" TimeOfDay="05:20:54 PM">
+  <Point X="388" Y="526" T="0" />
+  <Point X="388" Y="528" T="170" />
+  <Point X="391" Y="532" T="210" />
+  <Point X="396" Y="538" T="251" />
+  <Point X="401" Y="543" T="298" />
+  <Point X="405" Y="548" T="342" />
+  <Point X="409" Y="551" T="384" />
+  <Point X="409" Y="548" T="426" />
+  <Point X="410" Y="543" T="466" />
+  <Point X="411" Y="536" T="510" />
+  <Point X="412" Y="522" T="550" />
+  <Point X="415" Y="505" T="592" />
+  <Point X="418" Y="488" T="637" />
+  <Point X="424" Y="465" T="681" />
+  <Point X="430" Y="445" T="723" />
+  <Point X="437" Y="426" T="765" />
+  <Point X="444" Y="406" T="806" />
+  <Point X="451" Y="384" T="850" />
+  <Point X="457" Y="369" T="889" />
+  <Point X="464" Y="353" T="932" />
+  <Point X="469" Y="344" T="977" />
+  <Point X="473" Y="339" T="1014" />
+</Gesture>

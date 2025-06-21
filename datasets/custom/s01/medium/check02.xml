@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Gesture Name="check02" Subject="1" Speed="medium" Number="2" NumPts="42" Millseconds="1846" AppName="Gestures" AppVer="1.0" Date="Saturday, June 21, 2025" TimeOfDay="05:20:54 PM">
+  <Point X="509" Y="306" T="0" />
+  <Point X="510" Y="309" T="165" />
+  <Point X="512" Y="312" T="208" />
+  <Point X="517" Y="317" T="251" />
+  <Point X="524" Y="324" T="291" />
+  <Point X="531" Y="331" T="335" />
+  <Point X="536" Y="334" T="374" />
+  <Point X="543" Y="338" T="374" />
+  <Point X="548" Y="341" T="450" />
+  <Point X="552" Y="343" T="493" />
+  <Point X="555" Y="343" T="493" />
+  <Point X="557" Y="343" T="578" />
+  <Point X="558" Y="342" T="579" />
+  <Point X="559" Y="341" T="654" />
+  <Point X="560" Y="340" T="654" />
+  <Point X="561" Y="340" T="729" />
+  <Point X="562" Y="340" T="729" />
+  <Point X="564" Y="339" T="804" />
+  <Point X="565" Y="336" T="848" />
+  <Point X="566" Y="331" T="848" />
+  <Point X="566" Y="323" T="924" />
+  <Point X="566" Y="311" T="967" />
+  <Point X="565" Y="299" T="967" />
+  <Point X="565" Y="284" T="1043" />
+  <Point X="567" Y="268" T="1082" />
+  <Point X="568" Y="253" T="1082" />
+  <Point X="570" Y="242" T="1160" />
+  <Point X="572" Y="226" T="1160" />
+  <Point X="574" Y="216" T="1242" />
+  <Point X="576" Y="205" T="1285" />
+  <Point X="580" Y="184" T="1285" />
+  <Point X="582" Y="177" T="1361" />
+  <Point X="583" Y="168" T="1445" />
+  <Point X="585" Y="161" T="1485" />
+  <Point X="586" Y="153" T="1485" />
+  <Point X="588" Y="148" T="1563" />
+  <Point X="593" Y="134" T="1565" />
+  <Point X="595" Y="129" T="1643" />
+  <Point X="597" Y="124" T="1722" />
+  <Point X="599" Y="122" T="1763" />
+  <Point X="601" Y="122" T="1764" />
+  <Point X="603" Y="123" T="1846" />
+</Gesture>

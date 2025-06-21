@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Gesture Name="check07" Subject="0" Speed="medium" Number="7" NumPts="64" Millseconds="1287" AppName="Gestures" AppVer="1.0" Date="Saturday, June 21, 2025" TimeOfDay="05:04:08 PM">
+  <Point X="86" Y="0" T="0" />
+  <Point X="89" Y="-4" T="163" />
+  <Point X="91" Y="-9" T="204" />
+  <Point X="92" Y="-15" T="246" />
+  <Point X="93" Y="-20" T="287" />
+  <Point X="94" Y="-26" T="329" />
+  <Point X="96" Y="-31" T="373" />
+  <Point X="98" Y="-36" T="414" />
+  <Point X="100" Y="-41" T="453" />
+  <Point X="101" Y="-47" T="496" />
+  <Point X="102" Y="-52" T="539" />
+  <Point X="103" Y="-58" T="580" />
+  <Point X="101" Y="-61" T="621" />
+  <Point X="96" Y="-60" T="663" />
+  <Point X="91" Y="-58" T="704" />
+  <Point X="86" Y="-55" T="745" />
+  <Point X="81" Y="-52" T="787" />
+  <Point X="77" Y="-49" T="830" />
+  <Point X="72" Y="-46" T="871" />
+  <Point X="67" Y="-43" T="913" />
+  <Point X="62" Y="-40" T="995" />
+  <Point X="57" Y="-38" T="1036" />
+  <Point X="53" Y="-35" T="1078" />
+  <Point X="48" Y="-32" T="1123" />
+  <Point X="43" Y="-29" T="1164" />
+  <Point X="38" Y="-26" T="1203" />
+  <Point X="34" Y="-23" T="1245" />
+  <Point X="29" Y="-20" T="1287" />
+</Gesture>
