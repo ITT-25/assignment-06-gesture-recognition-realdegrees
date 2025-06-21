@@ -12,12 +12,13 @@ DEFAULT_TEMPLATE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 
         
 class Recognizer:
     """Python implementation of the 1$ unistroke recognizer based on this pseudo code: https://depts.washington.edu/acelab/proj/dollar/dollar.pdf."""
-    def __init__(self, *, num_points: int = 64) -> None:
+    def __init__(self, *, num_points: int = 64, load_dataset: bool = True) -> None:
         self.num_points = num_points
         self.templates: List[Tuple[str, np.ndarray]] = []
         self.custom_templates: List[Tuple[str, np.ndarray, List[int], np.ndarray]] = []
         self.loading = True
-        self._load_templates(DEFAULT_TEMPLATE_PATH, yield_to_main=False)
+        if load_dataset:
+            self._load_templates(DEFAULT_TEMPLATE_PATH, yield_to_main=False)
 
     def _load_templates(self, template_path: str, yield_to_main: bool = True):
         xml_files = []
