@@ -11,6 +11,8 @@
 
 > ⚠️ Due to some import shenanigans you **must** run all applications as modules `-m` **from the root directory**
 
+> ⚠️ The `requirements.txt` includes `jupyter` and `ipykernel` so you can use it for Task 1,2 and 4 but also as a kernel for Task 3
+
 # 1. $1 Gesture Recognizer
 
 This program is a python implementation of the [1$ Unistroke Recognizer](https://depts.washington.edu/acelab/proj/dollar/index.html).  
