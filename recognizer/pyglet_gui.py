@@ -2,7 +2,7 @@ from typing import Callable, List, Optional, Tuple
 import pyglet
 from pyglet.window import mouse
 import numpy as np
-from recognizer.gesture_ui import GestureSaverUI
+from recognizer.saver_ui import GestureSaverUI
 from recognizer.recognizer import Recognizer, AsyncRecognizer
 from recognizer.gesture_saver import GestureSaver
 import click
