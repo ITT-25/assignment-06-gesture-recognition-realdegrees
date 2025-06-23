@@ -14,8 +14,7 @@ class Stroke:
     def __init__(self, points: List[Tuple[float, float]], times: List[int]):
         self.points = points
         self.times = times
-        self.prediction: Optional[Tuple[str,
-                                        np.ndarray, np.ndarray, float]] = None
+        self.prediction: Optional[Tuple[str, np.ndarray, np.ndarray, float]] = None
 
     def to_array(self) -> np.ndarray:
         return np.array(self.points, dtype=float)
@@ -41,8 +40,15 @@ class DrawingWindow(pyglet.window.Window):
         self.recognizer = recognizer
         self.stroke_points: np.ndarray = np.empty((0, 2), dtype=float)
         self.stroke_times: List[int] = []
-        self.label = pyglet.text.Label("Draw a gesture", font_size=13, x=10,
-                                       y=self.height-60, anchor_x='left', anchor_y='top', color=(0, 0, 0, 255))
+        self.label = pyglet.text.Label(
+            "Draw a gesture",
+            font_size=13,
+            x=10,
+            y=self.height - 60,
+            anchor_x="left",
+            anchor_y="top",
+            color=(0, 0, 0, 255),
+        )
         self.set_mouse_visible(True)
         pyglet.gl.glClearColor(1, 1, 1, 1)
         self.denorm_template = None  # Store denormalized template for drawing
@@ -52,7 +58,9 @@ class DrawingWindow(pyglet.window.Window):
         # Gesture Saving
         self.gesture_saver = GestureSaver()
         self.save_ui = GestureSaverUI(
-            self.gesture_saver, self.recognizer, self,
+            self.gesture_saver,
+            self.recognizer,
+            self,
             window_width=self.width,
             window_height=self.height,
             add_callback=self._add_custom_template,
@@ -62,21 +70,22 @@ class DrawingWindow(pyglet.window.Window):
 
     def _add_custom_template(self):
         label = self.save_ui.get_gesture_name_input()
-        self.recognizer.add_custom_template(label, self.current_stroke.points, self.current_stroke.times)
+        self.recognizer.add_custom_template(
+            label, self.current_stroke.points, self.current_stroke.times
+        )
 
     def run(self, on_update: Optional[Callable[[float], None]] = None):
         """Run the Pyglet application."""
         # Start update interval
         if on_update:
-            pyglet.clock.schedule_interval(lambda dt: on_update(dt), 1/30)
+            pyglet.clock.schedule_interval(lambda dt: on_update(dt), 1 / 30)
         pyglet.app.run()
 
     def update_background(self, frame: np.ndarray):
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         h, w, _ = frame_rgb.shape
         image_data = frame_rgb.flatten().tobytes()
-        self.pyglet_image = pyglet.image.ImageData(
-            w, h, 'RGB', image_data, pitch=-w*3)
+        self.pyglet_image = pyglet.image.ImageData(w, h, "RGB", image_data, pitch=-w * 3)
 
     def on_draw(self):
         self.clear()
@@ -88,15 +97,13 @@ class DrawingWindow(pyglet.window.Window):
             for i in range(len(self.stroke_points) - 1):
                 x1, y1 = self.stroke_points[i]
                 x2, y2 = self.stroke_points[i + 1]
-                pyglet.shapes.Line(x1, y1, x2, y2, thickness=3,
-                                   color=(0, 255, 0)).draw()
+                pyglet.shapes.Line(x1, y1, x2, y2, thickness=3, color=(0, 255, 0)).draw()
         # Draw denormalized template if available
         if self.denorm_template is not None and len(self.denorm_template) > 1:
             for i in range(len(self.denorm_template) - 1):
                 x1, y1 = self.denorm_template[i]
                 x2, y2 = self.denorm_template[i + 1]
-                pyglet.shapes.Line(x1, y1, x2, y2, thickness=3,
-                                   color=(255, 0, 0)).draw()
+                pyglet.shapes.Line(x1, y1, x2, y2, thickness=3, color=(255, 0, 0)).draw()
         self.label.draw()
         self.save_ui.draw()
 
@@ -146,9 +153,9 @@ class DrawingWindow(pyglet.window.Window):
             self.save_ui.gesture_name_input.set_text(str(self.current_stroke))
         if self.save_ui.autocapture:
             self.recognizer.add_custom_template(
-                self.save_ui.get_gesture_name_input(), 
+                self.save_ui.get_gesture_name_input(),
                 self.current_stroke.points,
-                self.current_stroke.times
+                self.current_stroke.times,
             )
 
     def flip_points(self, points: np.ndarray) -> np.ndarray:
@@ -166,10 +173,10 @@ class DrawingWindow(pyglet.window.Window):
 @click.option("--async-loading", "-a", is_flag=True, help="Load templates asynchronously")
 def main(async_loading: bool):
     recognizer_args = {}
-    recognizer = AsyncRecognizer(
-        **recognizer_args) if async_loading else Recognizer(**recognizer_args)
-    window = DrawingWindow(recognizer, width=600,
-                           height=400, caption="$1 Recognizer Demo")
+    recognizer = (
+        AsyncRecognizer(**recognizer_args) if async_loading else Recognizer(**recognizer_args)
+    )
+    window = DrawingWindow(recognizer, width=600, height=400, caption="$1 Recognizer Demo")
     window.run()
 
 

@@ -3,17 +3,26 @@ import random
 from enum import Enum
 from recognizer.recognizer import AsyncRecognizer
 
+
 class GameState(Enum):
     WAITING = "waiting"
     PLAYING = "playing"
     GAME_OVER = "game_over"
 
+
 class GestureGameApp:
     """Main controller for gesture game logic and state."""
+
     def __init__(self, recognizer: AsyncRecognizer, max_rounds=10, available_gestures=None):
         self.recognizer = recognizer
         self.max_rounds = max_rounds
-        self.available_gestures = available_gestures or ["rectangle", "circle", "check", "delete_mark", "pigtail"]
+        self.available_gestures = available_gestures or [
+            "rectangle",
+            "circle",
+            "check",
+            "delete_mark",
+            "pigtail",
+        ]
         self.score = 0
         self.current_round = 0
         self.current_gesture = None
@@ -24,7 +33,9 @@ class GestureGameApp:
         self._filter_gestures_by_templates()
 
     def _filter_gestures_by_templates(self):
-        template_names = set(t[0] for t in [*self.recognizer.templates, *self.recognizer.custom_templates])
+        template_names = set(
+            t[0] for t in [*self.recognizer.templates, *self.recognizer.custom_templates]
+        )
         self.available_gestures = list(template_names)
 
     def start_game(self):
@@ -46,7 +57,9 @@ class GestureGameApp:
 
     def _choose_gesture_and_template(self):
         gesture = random.choice(self.available_gestures)
-        templates = [t for t in self.recognizer.templates if t[0].startswith(gesture) or gesture in t[0]]
+        templates = [
+            t for t in self.recognizer.templates if t[0].startswith(gesture) or gesture in t[0]
+        ]
         if not templates:
             return None, None
         _, template_points, _, _ = random.choice(templates)

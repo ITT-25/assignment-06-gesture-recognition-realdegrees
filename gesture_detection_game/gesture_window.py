@@ -6,6 +6,7 @@ from gesture_detection_game.gesture_preview import GesturePreview
 from gesture_detection_game.app_logic import GestureGameApp, GameState
 import cv2
 
+
 class GestureGameWindow(pyglet.window.Window):
     def __init__(self, recognizer, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -15,9 +16,33 @@ class GestureGameWindow(pyglet.window.Window):
         self.set_mouse_visible(True)
         pyglet.gl.glClearColor(1, 1, 1, 1)
         self.pyglet_image = None
-        self.score_label = pyglet.text.Label("", font_size=16, x=10, y=self.height-30, anchor_x='left', anchor_y='top', color=(0, 0, 0, 255))
-        self.instruction_label = pyglet.text.Label("", font_size=24, x=self.width//2, y=self.height//2, anchor_x='center', anchor_y='center', color=(0, 0, 0, 255))
-        self.timer_label = pyglet.text.Label("Time: 0.00s", font_size=16, x=self.width//2, y=self.height-30, anchor_x='center', anchor_y='top', color=(255, 255, 255, 255))
+        self.score_label = pyglet.text.Label(
+            "",
+            font_size=16,
+            x=10,
+            y=self.height - 30,
+            anchor_x="left",
+            anchor_y="top",
+            color=(0, 0, 0, 255),
+        )
+        self.instruction_label = pyglet.text.Label(
+            "",
+            font_size=24,
+            x=self.width // 2,
+            y=self.height // 2,
+            anchor_x="center",
+            anchor_y="center",
+            color=(0, 0, 0, 255),
+        )
+        self.timer_label = pyglet.text.Label(
+            "Time: 0.00s",
+            font_size=16,
+            x=self.width // 2,
+            y=self.height - 30,
+            anchor_x="center",
+            anchor_y="top",
+            color=(255, 255, 255, 255),
+        )
         self.preview = GesturePreview(self.width - 200, self.height - 180, 180, 120)
 
     def on_key_press(self, symbol: int, modifiers: int):
@@ -64,7 +89,7 @@ class GestureGameWindow(pyglet.window.Window):
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         h, w, _ = frame_rgb.shape
         image_data = frame_rgb.flatten().tobytes()
-        self.pyglet_image = pyglet.image.ImageData(w, h, 'RGB', image_data, pitch=-w*3)
+        self.pyglet_image = pyglet.image.ImageData(w, h, "RGB", image_data, pitch=-w * 3)
 
     def on_draw(self):
         self.clear()
@@ -83,20 +108,46 @@ class GestureGameWindow(pyglet.window.Window):
         if self.app.game_state != GameState.GAME_OVER and self.app.game_start_time is not None:
             elapsed = time.time() - self.app.game_start_time
             self.timer_label.text = f"Time: {elapsed:.2f}s"
-            pyglet.text.Label(self.timer_label.text, font_size=16, x=self.width//2, y=self.height-30, anchor_x='center', anchor_y='top', color=light_green).draw()
+            pyglet.text.Label(
+                self.timer_label.text,
+                font_size=16,
+                x=self.width // 2,
+                y=self.height - 30,
+                anchor_x="center",
+                anchor_y="top",
+                color=light_green,
+            ).draw()
         # Draw score and round
         if self.app.game_state != GameState.GAME_OVER:
             round_text = f"Round {self.app.current_round}/{self.app.max_rounds}"
             score_text = f"Score: {self.app.score}"
-            pyglet.text.Label(score_text, font_size=18, x=15, y=self.height-10, anchor_x='left', anchor_y='top', color=light_green).draw()
-            pyglet.text.Label(round_text, font_size=18, x=self.width//2, y=self.height-10, anchor_x='center', anchor_y='top', color=light_green).draw()
+            pyglet.text.Label(
+                score_text,
+                font_size=18,
+                x=15,
+                y=self.height - 10,
+                anchor_x="left",
+                anchor_y="top",
+                color=light_green,
+            ).draw()
+            pyglet.text.Label(
+                round_text,
+                font_size=18,
+                x=self.width // 2,
+                y=self.height - 10,
+                anchor_x="center",
+                anchor_y="top",
+                color=light_green,
+            ).draw()
         # Draw game over info
         if self.app.game_state == GameState.GAME_OVER:
             rect_width = self.width * 0.7
             rect_height = 140
             rect_x = self.width // 2 - rect_width // 2 - 80
             rect_y = self.height // 2 - rect_height // 2 + 40
-            bg_rect = pyglet.shapes.Rectangle(rect_x, rect_y, rect_width, rect_height, color=(240, 240, 240))
+            bg_rect = pyglet.shapes.Rectangle(
+                rect_x, rect_y, rect_width, rect_height, color=(240, 240, 240)
+            )
             bg_rect.opacity = 220
             bg_rect.draw()
             center_text = (
@@ -104,15 +155,25 @@ class GestureGameWindow(pyglet.window.Window):
                 f"Time: {self.app.elapsed_time:.2f}s\n"
                 "Press SPACE to restart"
             )
-            pyglet.text.Label(center_text, font_size=28, x=self.width//2, y=self.height//2 + 40, anchor_x='center', anchor_y='center', color=(0, 0, 0, 255), multiline=True, width=self.width * 0.8).draw()
+            pyglet.text.Label(
+                center_text,
+                font_size=28,
+                x=self.width // 2,
+                y=self.height // 2 + 40,
+                anchor_x="center",
+                anchor_y="center",
+                color=(0, 0, 0, 255),
+                multiline=True,
+                width=self.width * 0.8,
+            ).draw()
         # Draw start prompt if waiting
         if self.app.game_state == GameState.WAITING:
             pyglet.text.Label(
                 "Press SPACE to start",
                 font_size=28,
-                x=self.width//2,
+                x=self.width // 2,
                 y=80,
-                anchor_x='center',
-                anchor_y='bottom',
-                color=light_green
+                anchor_x="center",
+                anchor_y="bottom",
+                color=light_green,
             ).draw()

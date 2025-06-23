@@ -5,23 +5,24 @@ from typing import List, Tuple, Optional
 import numpy as np
 import cv2
 
+
 class HandData:
     def __init__(self, landmarks: List[Tuple[float, float, float]], gesture: str):
         self.landmarks = landmarks
         self.gesture = gesture
 
-# ! TODO: Keep gesturerecognizer for now but seems like basic landmark distance comparisons are more than enough for these tasks, 
+
+# ! TODO: Keep gesturerecognizer for now but seems like basic landmark distance comparisons are more than enough for these tasks,
 # ! replacing gesture recognizer with simple hand landmark detection would improve speed and reduce complexity
 class HandDetector:
     def __init__(self, model_path: str = "pointing_input/gesture_recognizer.task"):
         base_options = python.BaseOptions(model_asset_buffer=open(model_path, "rb").read())
-        options = vision.GestureRecognizerOptions(
-            base_options=base_options,
-            num_hands=2
-        )
+        options = vision.GestureRecognizerOptions(base_options=base_options, num_hands=2)
         self.recognizer = vision.GestureRecognizer.create_from_options(options)
 
-    def detect_landmarks(self, image_frame: np.ndarray) -> Tuple[Optional[HandData], Optional[HandData]]:
+    def detect_landmarks(
+        self, image_frame: np.ndarray
+    ) -> Tuple[Optional[HandData], Optional[HandData]]:
         rgb_image = cv2.cvtColor(image_frame, cv2.COLOR_BGR2RGB)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_image)
         result = self.recognizer.recognize(mp_image)

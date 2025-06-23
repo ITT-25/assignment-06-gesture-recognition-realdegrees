@@ -7,11 +7,14 @@ import threading
 import time
 from collections import defaultdict
 
-DEFAULT_TEMPLATE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../datasets/xml_logs"))
+DEFAULT_TEMPLATE_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../datasets/xml_logs")
+)
 
-        
+
 class Recognizer:
     """Python implementation of the 1$ unistroke recognizer based on this pseudo code: https://depts.washington.edu/acelab/proj/dollar/dollar.pdf."""
+
     def __init__(self, *, num_points: int = 64, load_dataset: bool = True) -> None:
         self.num_points = num_points
         self.templates: List[Tuple[str, np.ndarray]] = []
@@ -40,18 +43,26 @@ class Recognizer:
                 points.append([x, y])
             points_array = np.array(points, dtype=float)
             normalized_points, _ = self.normalize(points_array)
-            self.templates.append((label, normalized_points, [int(element.get("T")) for element in xml_root.findall("Point")], points_array))
+            self.templates.append(
+                (
+                    label,
+                    normalized_points,
+                    [int(element.get("T")) for element in xml_root.findall("Point")],
+                    points_array,
+                )
+            )
             # Loading bar
             if idx % 5 == 0 or idx == total:
                 bar_len = 30
                 filled_len = int(bar_len * idx // total)
-                bar = '=' * filled_len + '-' * (bar_len - filled_len)
-                sys.stdout.write(f"\rLoading gesture templates ({"Async" if yield_to_main else "Sync"}): [{bar}] {idx}/{total}")
+                bar = "=" * filled_len + "-" * (bar_len - filled_len)
+                sys.stdout.write(
+                    f"\rLoading gesture templates ({'Async' if yield_to_main else 'Sync'}): [{bar}] {idx}/{total}"
+                )
                 sys.stdout.flush()
             if yield_to_main:
                 time.sleep(0.001)  # Yield to main thread to reduce lag
         print()
-
 
     def normalize(self, points: np.ndarray) -> Tuple[np.ndarray, dict]:
         """Normalize the input points to a fixed number of points, scale, rotate, and translate them."""
@@ -59,7 +70,9 @@ class Recognizer:
         resampled = self._resample(points)
         # 2. Rotation
         center_before_rot = self._centroid(resampled)
-        angle = np.arctan2(resampled[0, 1] - center_before_rot[1], resampled[0, 0] - center_before_rot[0])
+        angle = np.arctan2(
+            resampled[0, 1] - center_before_rot[1], resampled[0, 0] - center_before_rot[0]
+        )
         rotated = self._rotate(resampled, -angle)
         # 3. Scaling
         min_vals = np.min(rotated, axis=0)
@@ -69,26 +82,22 @@ class Recognizer:
         # 4. Translation
         center = self._centroid(scaled)
         translated = scaled - center
-        params = {
-            'angle': angle,
-            'scale': scale,
-            'center': center
-        }
+        params = {"angle": angle, "scale": scale, "center": center}
         return translated, params
 
     def denormalize(self, points: np.ndarray, params: dict) -> np.ndarray:
         if points is None or len(points) == 0:
             return points
-        denorm = points + params['center']
-        denorm = denorm / params['scale']
-        denorm = self._rotate(denorm, params['angle'])
+        denorm = points + params["center"]
+        denorm = denorm / params["scale"]
+        denorm = self._rotate(denorm, params["angle"])
         return denorm
 
     def _resample(self, points: np.ndarray | list) -> np.ndarray:
         """Resample points to fixed number."""
         if isinstance(points, np.ndarray):
             points = points.tolist()
-        distances = np.sqrt(np.sum(np.diff(points, axis=0)**2, axis=1))
+        distances = np.sqrt(np.sum(np.diff(points, axis=0) ** 2, axis=1))
         path_length = np.sum(distances)
         interval = path_length / (self.num_points - 1)
 
@@ -101,12 +110,12 @@ class Recognizer:
                 t = (interval - accumulated_distance) / dist
                 new_point = [
                     points[i - 1][0] + t * (points[i][0] - points[i - 1][0]),
-                    points[i - 1][1] + t * (points[i][1] - points[i - 1][1])
+                    points[i - 1][1] + t * (points[i][1] - points[i - 1][1]),
                 ]
                 resampled.append(new_point)
                 points.insert(i, new_point)
                 accumulated_distance = 0.0
-                i += 1 
+                i += 1
             else:
                 accumulated_distance += dist
                 i += 1
@@ -145,10 +154,13 @@ class Recognizer:
     def _centroid(self, points: np.ndarray) -> np.ndarray:
         """Compute centroid of points."""
         return np.mean(points, axis=0)
-    
 
     def recognize(self, points: np.ndarray) -> Tuple[str, np.ndarray, np.ndarray, float]:
-        if points is None or len(points) == 0 or (len(self.templates) == 0 and len(self.custom_templates) == 0):
+        if (
+            points is None
+            or len(points) == 0
+            or (len(self.templates) == 0 and len(self.custom_templates) == 0)
+        ):
             return None, None, None, 0.0
         """Recognize the input gesture.
         
@@ -157,27 +169,27 @@ class Recognizer:
         normalized_points, params = self.normalize(points)
         best_label, best_template, best_score = self.match(normalized_points)
         denormalized_template = self.denormalize(best_template, params)
-        
+
         # Softmax confidence over class min distances
-        label_min_dist = defaultdict(lambda: float('inf'))
+        label_min_dist = defaultdict(lambda: float("inf"))
         for label, template, _, _ in self.custom_templates + self.templates:
             dist = self._path_distance(normalized_points, template)
             if dist < label_min_dist[label]:
                 label_min_dist[label] = dist
-                
+
         labels = list(label_min_dist.keys())
         min_dists = np.array([label_min_dist[label] for label in labels])
-        
+
         # Compute logits and probabilities
         logits = -min_dists  # negative distances
-        exp_logits = np.exp(logits - np.max(logits)) 
-    
+        exp_logits = np.exp(logits - np.max(logits))
+
         # Normalize to get probabilities
         probs = exp_logits / np.sum(exp_logits)
         label_to_prob = dict(zip(labels, probs))
         confidence = label_to_prob.get(best_label, 0.0)
         return best_label, normalized_points, denormalized_template, confidence
-    
+
     def add_custom_template(self, label: str, points: np.ndarray, times: List[int]):
         """Add a new template to the recognizer."""
         if points is None or len(points) == 0 or label is None or len(label) == 0:
@@ -193,7 +205,7 @@ class Recognizer:
     # TODO: Possible enhancement but would differ from the original algorithm: sort by avg distance and return the most dominant label in the N lowest distance candidates
     def match(self, candidate: np.ndarray) -> Tuple[str, np.ndarray, float]:
         """Match the candidate gesture against the templates.
-        
+
         Returns the label of the best matching template, the template itself, and the distance score."""
         best_score = float("inf")
         best_template: Tuple[str, np.ndarray] = ("", np.array([]))
@@ -208,12 +220,16 @@ class Recognizer:
         """Compute average distance between corresponding points."""
         return np.mean(np.linalg.norm(a - b, axis=1))
 
+
 class AsyncRecognizer(Recognizer):
     """Async Python implementation of the 1$ unistroke recognizer based on this pseudo code: https://depts.washington.edu/acelab/proj/dollar/dollar.pdf."""
+
     def __init__(self, *, template_path: str = DEFAULT_TEMPLATE_PATH, num_points: int = 64) -> None:
         self.num_points = num_points
         self.templates: List[Tuple[str, np.ndarray]] = []
         self.custom_templates: List[Tuple[str, np.ndarray]] = []
         self.loading = True
-        self._loading_thread = threading.Thread(target=self._load_templates, args=(template_path,), daemon=True)
+        self._loading_thread = threading.Thread(
+            target=self._load_templates, args=(template_path,), daemon=True
+        )
         self._loading_thread.start()

@@ -6,11 +6,14 @@ from pointing_input.hand_detector import HandData
 import math
 from time import time
 
-class HandState():
+
+class HandState:
     """TypedDict to represent the state of thumb touch detection."""
+
     def __init__(self, index_thumb_touch: bool = False, index_extended: bool = False):
         self.index_thumb_touch = index_thumb_touch
         self.index_extended = index_extended
+
 
 class MouseMapper:
     def __init__(self, frame_width: int, frame_height: int):
@@ -23,7 +26,9 @@ class MouseMapper:
         self.calibrated = False
         self.position_history: Deque[Tuple[int, int]] = deque(maxlen=5)  # Mouse smoothing
         self.last_set_position: Optional[Tuple[int, int]] = None
-        self.touch_state_window: Deque[HandState] = deque([HandState() for _ in range(10)], maxlen=10)  # Input smoothing
+        self.touch_state_window: Deque[HandState] = deque(
+            [HandState() for _ in range(10)], maxlen=10
+        )  # Input smoothing
         self.index_thumb_touch_start_time = None  # Track when thumb touch starts
 
     def _get_screen_size(self):
@@ -44,17 +49,14 @@ class MouseMapper:
         self.center_x, self.center_y = self.get_centroid(hand)
         self.mouse_anchor = self.mouse.position
         self.calibrated = True
-    
-    # Hardcoded based on https://ai.google.dev/edge/mediapipe/solutions/vision/gesture_recognizer#hand_landmark_model_bundle
+
     def get_centroid(self, hand: HandData) -> Tuple[int, int]:
         """Calculate the centroid of the wrist and finger base."""
         if not hand or not hasattr(hand, "landmarks") or not hand.landmarks:
             return self.center_x, self.center_y
 
         indices = [0, 1, 5, 9, 13, 17]
-        selected_landmarks = [
-            hand.landmarks[i] for i in indices if i < len(hand.landmarks)
-        ]
+        selected_landmarks = [hand.landmarks[i] for i in indices if i < len(hand.landmarks)]
         if not selected_landmarks:
             return self.center_x, self.center_y
 
@@ -66,15 +68,15 @@ class MouseMapper:
 
     def move_mouse(self, hand: HandData):
         """Move the mouse pointer to follow the index finger relative to the calibration center and mouse anchor."""
-        if not hand or len(hand.landmarks) < 8 or not hasattr(self, 'mouse_anchor'):
+        if not hand or len(hand.landmarks) < 8 or not hasattr(self, "mouse_anchor"):
             return  # Not enough landmarks or not calibrated yet
 
         x, y = self.get_centroid(hand)
-        
+
         # Calculate delta from calibration center
         rel_x = x - self.center_x
         rel_y = y - self.center_y
-        
+
         # Add delta to mouse anchor
         anchor_x, anchor_y = self.mouse_anchor
         screen_x = int(anchor_x + rel_x * (self.screen_width / self.frame_width))
@@ -87,7 +89,7 @@ class MouseMapper:
         self.position_history.append((screen_x, screen_y))
         avg_x = int(sum(p[0] for p in self.position_history) / len(self.position_history))
         avg_y = int(sum(p[1] for p in self.position_history) / len(self.position_history))
-        
+
         self.mouse.position = (avg_x, avg_y)
         self.last_set_position = (avg_x, avg_y)
 
@@ -95,28 +97,36 @@ class MouseMapper:
         # Weighted smoothing: newer states have more weight
         weights = list(range(1, len(self.touch_state_window) + 1))
         total_weight = sum(weights)
-        index_score = sum(state.index_thumb_touch * w for state, w in zip(self.touch_state_window, weights))
-        middle_score = sum(state.index_extended * w for state, w in zip(self.touch_state_window, weights))
+        index_score = sum(
+            state.index_thumb_touch * w for state, w in zip(self.touch_state_window, weights)
+        )
+        middle_score = sum(
+            state.index_extended * w for state, w in zip(self.touch_state_window, weights)
+        )
         smoothed = HandState(
             index_thumb_touch=index_score >= total_weight / 2,
-            index_extended=middle_score >= total_weight / 2
+            index_extended=middle_score >= total_weight / 2,
         )
         return smoothed
 
-    def process(self, left_hand: Optional[HandData], right_hand: Optional[HandData], use_right=True):
+    def process(
+        self, left_hand: Optional[HandData], right_hand: Optional[HandData], use_right=True
+    ):
         hand = right_hand if use_right else left_hand
         if hand and hand.gesture == "Closed_Fist":
             # If the hand is a closed fist, do not process further
             return
-                
+
         # Index finger is mapped to clicking and holding, Middle finger is mapped to dragging
         index_touching = self.index_thumb_touching(hand) if hand else False
-        index_extended = self.index_extended(hand) if hand else False 
+        index_extended = self.index_extended(hand) if hand else False
         # Update sliding window using deque
-        prev_state = self.get_smoothed_touch_state()    
-        self.touch_state_window.append(HandState(index_thumb_touch=index_touching, index_extended=index_extended))
+        prev_state = self.get_smoothed_touch_state()
+        self.touch_state_window.append(
+            HandState(index_thumb_touch=index_touching, index_extended=index_extended)
+        )
         current_state = self.get_smoothed_touch_state()
-        
+
         # Movement logic with grace period for index-thumb touch
         move_by_index_extended = current_state.index_extended
         move_by_index_thumb_touch = False
@@ -133,7 +143,7 @@ class MouseMapper:
             self.move_mouse(hand)
         else:
             self.calibrated = False  # Reset calibration if middle finger is not touching
-        
+
         # Clicking Logic
         # Transition: not touching -> touching
         touch_started = current_state.index_thumb_touch and not prev_state.index_thumb_touch
@@ -153,13 +163,14 @@ class MouseMapper:
         thumb_tip = hand.landmarks[4]
         dx = index_tip[0] - thumb_tip[0]
         dy = index_tip[1] - thumb_tip[1]
-        distance = (dx ** 2 + dy ** 2) ** 0.5
+        distance = (dx**2 + dy**2) ** 0.5
         return distance < 0.045
-    
+
     def index_extended(self, hand: HandData) -> bool:
         """Check if the index finger is extended by comparing angles between its joints."""
         if not hand or len(hand.landmarks) < 9:
             return False
+
         # Landmarks: 5 (MCP), 6 (PIP), 7 (DIP), 8 (TIP)
         def angle(a, b, c):
             # Returns the angle (in degrees) at point b given three points a-b-c

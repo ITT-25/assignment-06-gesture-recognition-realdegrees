@@ -10,10 +10,27 @@ recognizer = AsyncRecognizer()
 window = DrawingWindow(recognizer=recognizer)
 mouse = MouseMapper(window.width, window.height)
 
+
 @click.command()
-@click.option("--video-id", "-c", default=0, help="ID of the webcam you want to use", type=int, show_default=True)
-@click.option("--cam-width", "-w", default=640, help="Width of the webcam frame", type=int, show_default=True)
-@click.option("--cam-height", "-h", default=480, help="Height of the webcam frame", type=int, show_default=True)
+@click.option(
+    "--video-id",
+    "-c",
+    default=0,
+    help="ID of the webcam you want to use",
+    type=int,
+    show_default=True,
+)
+@click.option(
+    "--cam-width", "-w", default=640, help="Width of the webcam frame", type=int, show_default=True
+)
+@click.option(
+    "--cam-height",
+    "-h",
+    default=480,
+    help="Height of the webcam frame",
+    type=int,
+    show_default=True,
+)
 @click.option("--debug", "-d", is_flag=True, help="Enable debug mode")
 def main(video_id: int, cam_width: int, cam_height: int, debug: bool) -> None:
     print(f"Starting webcam capture with camera ID: {video_id}")
@@ -35,7 +52,9 @@ def main(video_id: int, cam_width: int, cam_height: int, debug: bool) -> None:
 
         h, w = frame.shape[:2]
         # Detect hand landmarks
-        right, left = hand_detector.detect_landmarks(frame) # ! Left and right are swapped due to the frame flipping
+        right, left = hand_detector.detect_landmarks(
+            frame
+        )  # ! Left and right are swapped due to the frame flipping
         mouse.process(left, right, use_right=True)
 
         # If no hand is detected, clear the gesture queue
@@ -51,14 +70,30 @@ def main(video_id: int, cam_width: int, cam_height: int, debug: bool) -> None:
                     y = int(landmark[1] * h)
                     cv2.circle(frame, (x, y), 1, (0, 255, 0), -1)
                     if i == 0:
-                        cv2.putText(frame, left.gesture, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+                        cv2.putText(
+                            frame,
+                            left.gesture,
+                            (x, y - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.5,
+                            (0, 255, 0),
+                            1,
+                        )
             if right:
                 for i, landmark in enumerate(right.landmarks):
                     x = int(landmark[0] * w)
                     y = int(landmark[1] * h)
                     cv2.circle(frame, (x, y), 1, (255, 0, 0), -1)
                     if i == 0:
-                        cv2.putText(frame, right.gesture, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
+                        cv2.putText(
+                            frame,
+                            right.gesture,
+                            (x, y - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.5,
+                            (255, 0, 0),
+                            1,
+                        )
 
         window.update_background(frame)
 
