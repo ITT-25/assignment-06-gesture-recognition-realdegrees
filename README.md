@@ -42,7 +42,8 @@ python -m pointing_input.pointing_input --video-id 0 -d
 ## Control Instructions
 
 The application is controlled using simple gestures.   
-The controls work best with an open palm facing towards the camera.    
+The controls work best with an open palm facing towards the camera.  
+(Both this task and task 4 are hardcoded to use the right hand for gesture recognition)  
 
 - `Connecting` **index** finger and **thumb** will trigger `Left Mouse Button Down`  
 - `Releasing` **index** finger and **thumb** will trigger `Left Mouse Button Up`  
@@ -59,3 +60,21 @@ The delay is noticeable but better than jittery input
 
 > Test Datasets: The datasets are located in the [datasets/xml_logs](datasets/xml_logs) and [datasets/custom](datasets/custom) directories.  
 When the the notebook loads them it selects an equal number of samples from each dataset and loads them in the same way.
+
+Documentation on this task is in the notebook.  
+
+# Gesture Detection Game
+
+Due to time constraints I decided on a very rudimentary game that simply gives you a list of 10 random gestures to draw in sequence.  
+To add a little pressure there is a timer that tracks how long it took you to complete the 10 gestures and how many you got right.  
+To start the game press `SPACE`. A gesture will be shown in the top right corner that you will have to copy on the screen. An indicator shows the origin of the gesture.  
+You have one attempt per gesture, as soon as `Left Mouse Button Up` is detected, the gesture is recognized and you will move to the next one.  
+You can draw gestures with your mouse only, the pointing input program from Task 2 runs in the background so you can use it to control the mouse with your hand.  
+A preview of your webcam feed is also shown for easier mid-air input coordination.  
+
+To launch the game run the following command:
+
+```sh
+python -m gesture_detection_game.gesture_application --video-id 0 -d
+```
+You can adjust the width `-w` and height `-h` of the window (and your webcam) but it is recommended to stay on the default resolution for lower end devices.  
