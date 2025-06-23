@@ -39,9 +39,7 @@ When it opens it automatically launches the GUI from Task 1 (Can be minimized if
 # Debug flag is optional
 python -m pointing_input.pointing_input --video-id 0 -d
 ```
-
-
-## Control Instructions
+## 2.2 Control Instructions
 
 The application is controlled using simple gestures.   
 The controls work best with an open palm facing towards the camera.  
@@ -54,6 +52,20 @@ The controls work best with an open palm facing towards the camera.
 
 > ⚠️ The inputs are actively smoothed slightly to allow precise movement at the cost of a minimal delay
 The delay is noticeable but better than jittery input
+
+## 2.3 Saving Templates
+
+To create your own dataset you can save gestures using the GUI.  
+1. Enter the name for the gesture template in text input field at the top (next to the add button)  
+2. Draw your gesture
+3. Press the `Add` button to store the template in memory (A list of all created templates is shown in the bottom right)  
+(You can also use `Auto Add` to automatically save every drawn gesture under the given name for bulk recording)
+4. *Repeat steps 1-3 for as many gestures as you want to save*
+5. Enter a `Subject ID` *(numeric only)* in the text input field at the bottom
+6. Select the `Speed` that you want to use for the recorded gesture(s) [`Slow`, `Medium`, `Fast`]
+7. Press the `Save` button. Your templates will be saved in the `datasets/custom/` (path is built from subject id, speed and gesture name)
+8. Press the `Clear` button to clear the list of templates in memory to record for a new subject
+
 
 # 3. Comparing Gesture Recognizers
 

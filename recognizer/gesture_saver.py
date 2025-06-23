@@ -10,18 +10,14 @@ class GestureSaver:
         self.save_message = ""
         self.save_label_text = "Save"
 
-    def get_speed(self):
-        return "medium"
-
-    def get_save_dir(self, subject: str) -> str:
+    def get_save_dir(self, subject: str, speed: str) -> str:
         subject_folder = f"s{int(subject):02d}" if len(subject) < 3 else f"s{subject}"
-        speed = self.get_speed()
         return os.path.join(
             os.path.dirname(__file__), "..", "datasets", "custom", subject_folder, speed
         )
 
-    def get_next_filename(self, filename_base: str, subject: str) -> Tuple[str, int]:
-        save_dir = self.get_save_dir(subject)
+    def get_next_filename(self, filename_base: str, subject: str, speed: str) -> Tuple[str, int]:
+        save_dir = self.get_save_dir(subject, speed)
         os.makedirs(save_dir, exist_ok=True)
         existing_files = os.listdir(save_dir)
         pattern = re.compile(rf"^{re.escape(filename_base)}(\d+).xml$")
@@ -37,15 +33,19 @@ class GestureSaver:
         return filename, next_num
 
     def save_gesture(
-        self, filename_base: str, subject: str, points: List[Tuple[float, float]], times: List[int]
+        self,
+        filename_base: str,
+        subject: str,
+        points: List[Tuple[float, float]],
+        times: List[int],
+        speed: str = "medium",
     ):
         if points is None or len(points) < 2 or filename_base.strip() == "":
             self.save_message = "No stroke to save."
             return False
 
-        speed = self.get_speed()
-        save_dir = self.get_save_dir(subject)
-        filename, next_num = self.get_next_filename(filename_base, subject)
+        save_dir = self.get_save_dir(subject, speed)
+        filename, next_num = self.get_next_filename(filename_base, subject, speed)
         filepath = os.path.join(save_dir, filename + ".xml")
         now = datetime.now()
         duration = times[-1] - times[0] if len(times) > 1 else 0

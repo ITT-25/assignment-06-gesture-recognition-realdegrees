@@ -122,10 +122,10 @@ class DrawingWindow(pyglet.window.Window):
         self._handle_mouse = True
         self._mouse_x, self._mouse_y = x, y
 
-    def save_custom_templates(self, subject: str):
+    def save_custom_templates(self, subject: str, speed: str):
         """Save all custom templates to the recognizer."""
         for label, _, times, points in self.recognizer.custom_templates:
-            self.gesture_saver.save_gesture(label, subject, points, times)
+            self.gesture_saver.save_gesture(label, subject, points, times, speed)
         print("Custom templates saved.")
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):

@@ -113,6 +113,30 @@ class GestureSaverUI:
             title="Subject ID",
         )
 
+        # Speed button setup
+        self.speed_states = ["slow", "medium", "fast"]
+        self.speed_state_index = 1  # default to medium
+        self.speed_state = self.speed_states[self.speed_state_index]
+
+        self.speed_label = pyglet.text.Label(
+            "Medium",
+            font_size=14,
+            x=self.subject_input.input_box.x - margin - spacing,
+            y=self.subject_input.input_box.y + self.subject_input.input_box.height / 2,
+            anchor_x="right",
+            anchor_y="center",
+            color=(0, 0, 0, 255),
+        )
+        w, h = self.speed_label.content_width, self.speed_label.content_height
+        self.speed_button = pyglet.shapes.Rectangle(
+            self.speed_label.x - w - margin,
+            self.speed_label.y - h / 2 - margin,
+            w + margin * 2,
+            h + margin * 2,
+            color=(80, 100, 170),
+            batch=self.batch,
+        )
+
         self.save_label = pyglet.text.Label(
             "Save",
             font_size=14,
@@ -140,9 +164,9 @@ class GestureSaverUI:
     def draw(self):
         self.batch.draw()
         self.gesture_name_input.draw()
-
         self.subject_input.draw()
-        self.save_button.draw()
+        self.speed_label.text = self.speed_state.capitalize()
+        self.speed_label.draw()
         self.save_label.draw()
 
         self.add_label.draw()
@@ -197,12 +221,17 @@ class GestureSaverUI:
             lbl.draw()
 
     def handle_mouse_press(
-        self, x: int, y: int, button: int, save_callback: Callable[[str], None]
+        self, x: int, y: int, button: int, save_callback: Callable[[str, str], None]
     ) -> bool:
         def is_pressed(rect: pyglet.shapes.Rectangle, x: int, y: int) -> bool:
             return rect.x <= x <= rect.x + rect.width and rect.y <= y <= rect.y + rect.height
 
         if button == mouse.LEFT:
+            # Speed button
+            if is_pressed(self.speed_button, x, y):
+                self.speed_state_index = (self.speed_state_index + 1) % len(self.speed_states)
+                self.speed_state = self.speed_states[self.speed_state_index]
+                return True
             # Add button
             if is_pressed(self.add_button, x, y):
                 self.add_callback()
@@ -219,7 +248,7 @@ class GestureSaverUI:
             if is_pressed(self.save_button, x, y):
                 subject = self.subject_input.get_text().strip()
                 if subject != "":
-                    save_callback(subject)
+                    save_callback(subject, self.speed_state)
                 else:
                     print("Subject ID cannot be empty.")
                 return True
