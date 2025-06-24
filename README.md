@@ -15,6 +15,9 @@
 
 # 1. $1 Gesture Recognizer
 
+> ⚠️ For all non-notebook tasks the templates for recognizer are loaded in the background.  
+The window will open relatively fast but might stutter slightly while data is still loaded. Check console output for loading progress.  
+
 This program is a python implementation of the [1$ Unistroke Recognizer](https://depts.washington.edu/acelab/proj/dollar/index.html).  
 It was modeled based on [this pseudo-code](https://depts.washington.edu/acelab/proj/dollar/dollar.pdf).  
 The `Recognizer` class loads the gesture templates on initialization and provides a `recognize` method to label a path array.  
